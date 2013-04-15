@@ -1,0 +1,9 @@
+{
+  "name": "Ptolemy",
+  "description": "Vector map prototype",
+  "launch_path": "/index.html",
+  "icons": {
+    "128": "/img/icon-128.png"
+  },
+  "default_locale": "en"
+}
