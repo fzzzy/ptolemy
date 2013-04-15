@@ -1,4 +1,4 @@
-ptolemy
+Ptolemy
 =======
 
-ptolemy
+Vector map prototype
