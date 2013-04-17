@@ -1,0 +1,14 @@
+{
+  "name": "ptolemy",
+  "version": "0.0.1",
+  "dependencies": {
+    "jshint": "git://github.com/jshint/jshint.git#42ace75a"
+  },
+  "scripts": {
+    "test": "node make lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fzzzy/ptolemy.git"
+  }
+}
