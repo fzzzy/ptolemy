@@ -14,9 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* globals error, globalScope, InvalidPDFException, log,
-           MissingPDFException, PasswordException, PDFDocument, PDFJS, Promise,
-           Stream, UnknownErrorException, warn */
+/* globals globalScope, Promise, error */
 
 'use strict';
 
@@ -27,22 +25,16 @@ function MessageHandler(name, comObj) {
   var callbacks = this.callbacks = {};
   var ah = this.actionHandler = {};
 
+  var console = globalScope.console;
+
   ah['console_log'] = [function ahConsoleLog(data) {
-    log.apply(null, data);
+    console.log.apply(console, data);
   }];
-  // If there's no console available, console_error in the
-  // action handler will do nothing.
-  if ('console' in globalScope) {
-    ah['console_error'] = [function ahConsoleError(data) {
-      globalScope['console'].error.apply(null, data);
-    }];
-  } else {
-    ah['console_error'] = [function ahConsoleError(data) {
-      log.apply(null, data);
-    }];
-  }
-  ah['_warn'] = [function ah_Warn(data) {
-    warn(data);
+  ah['console_error'] = [function ahConsoleError(data) {
+    console.error.apply(console, data);
+  }];
+  ah['console_warn'] = [function ah_ConsoleWarn(data) {
+    console.warn.apply(console, data);
   }];
 
   comObj.onmessage = function messageHandlerComObjOnMessage(event) {
@@ -116,13 +108,21 @@ var workerConsole = {
     });
   },
 
+  warn: function warn() {
+    var args = Array.prototype.slice.call(arguments);
+    globalScope.postMessage({
+      action: 'console_warn',
+      data: args
+    });
+  },
+
   error: function error() {
     var args = Array.prototype.slice.call(arguments);
     globalScope.postMessage({
       action: 'console_error',
       data: args
     });
-    throw 'pdf.js execution error';
+    throw 'workerConsole.error: ' + args.join(', ');
   },
 
   time: function time(name) {
@@ -137,5 +137,3 @@ var workerConsole = {
     this.log('Timer:', name, Date.now() - time);
   }
 };
-
-

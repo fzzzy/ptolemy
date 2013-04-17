@@ -27,8 +27,11 @@ function setupWorkerMessageHandler() {
     var handler = new MessageHandler('worker', globalScope);
 
     handler.on('ping', function(data, promise) {
+        console.log('Hello World from WebWorker');
+        console.warn('Hello World from WebWorker');
         setTimeout(function() {
             promise.resolve(data + ' World');
+            console.error('Hello World from WebWorker');
         }, 250);
     });
 }
