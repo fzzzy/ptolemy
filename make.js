@@ -23,6 +23,8 @@
 require('./external/shelljs/make');
 var crlfchecker = require('./external/crlfchecker/crlfchecker.js');
 var path = require('path');
+var staticServer = require('node-static');
+
 
 var ROOT_DIR = __dirname + '/'; // absolute path to project's root
 
@@ -59,6 +61,23 @@ target.lint = function() {
             LINT_FILES.join(' ')).code);
 
   crlfchecker.checkIfCrlfIsPresent(LINT_FILES);
+};
+
+target.server = function() {
+  var file = new staticServer.Server();
+
+  require('http').createServer(function (request, response) {
+      request.addListener('end', function () {
+          //
+          // Serve files!
+          //
+          file.serve(request, response);
+      });
+  }).listen(8888);
+
+  echo('### Running local server')
+  echo('');
+  echo('Running server at localhost:8888')
 };
 
 //
