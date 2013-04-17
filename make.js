@@ -47,8 +47,7 @@ target.lint = function() {
   echo('### Linting JS files');
 
   var LINT_FILES = ['make.js',
-                    'external/crlfchecker/',
-                    'src/'
+                    'external/crlfchecker/'
                     ];
 
   var jshintPath = path.normalize('./node_modules/.bin/jshint');
