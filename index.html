@@ -3,6 +3,17 @@
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
+  <script type="text/javascript" src="src/core.js"></script>
+  <script type="text/javascript" src="src/util.js"></script>
+  <script type="text/javascript" src="src/worker.js"></script>
+  <script type="text/javascript">
+    PTOLEMY.enableWorker = location.hash.indexOf('disableWorker') === -1;
+    PTOLEMY.workerSrc = 'src/worker_loader.js';
+    PTOLEMY.boot();
+    PTOLEMY.handler.send('ping', 'Hello', function(data, promise) {
+      console.log('Reply from worker on "PING" request":', data);
+    });
+  </script>
 </head>
 <body>
   Hello, World
