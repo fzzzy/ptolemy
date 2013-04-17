@@ -2,8 +2,10 @@
   "name": "ptolemy",
   "version": "0.0.1",
   "dependencies": {
-    "jshint": "git://github.com/jshint/jshint.git#42ace75a",
-    "node-static": "0.6.9"
+    "jshint": "git://github.com/jshint/jshint.git#42ace75a"
+  },
+  "devDependencies": {
+      "node-static": "0.6.9"
   },
   "scripts": {
     "test": "node make lint"

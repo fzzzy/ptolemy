@@ -74,9 +74,9 @@ target.server = function() {
       });
   }).listen(8888);
 
-  echo('### Running local server')
+  echo('### Running local server');
   echo('');
-  echo('Running server at localhost:8888')
+  echo('Running server at localhost:8888');
 };
 
 //
