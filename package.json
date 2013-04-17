@@ -1,6 +1,6 @@
 {
-  "name": "pdf.js",
-  "version": "0.7.169",
+  "name": "ptolemy",
+  "version": "0.0.1",
   "dependencies": {
     "jshint": "git://github.com/jshint/jshint.git#42ace75a"
   },
@@ -9,12 +9,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/mozilla/pdf.js.git"
-  },
-  "licenses": [
-    {
-      "type": "Apache v2",
-      "url": "https://github.com/mozilla/pdf.js/blob/master/LICENSE"
-    }
-  ]
+    "url": "git://github.com/fzzzy/ptolemy.git"
+  }
 }
