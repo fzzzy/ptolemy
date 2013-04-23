@@ -50,8 +50,8 @@ function setupWorkerMessageHandler(handler) {
   handler.on('start', function(data, promise) {
     if (!globalScope.PTOLEMY.started) {
       globalScope.PTOLEMY.started = true;
-      console.log("importing,", data);
-      importScripts(data+"?"+new Date());
+      console.log('importing,', data);
+      importScripts(data+'?'+new Date());
       promise.resolve(true);
     }
   });
