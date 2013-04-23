@@ -10,15 +10,65 @@
     PTOLEMY.enableWorker = location.hash.indexOf('disableWorker') === -1;
     PTOLEMY.workerSrc = 'src/worker_loader.js';
     PTOLEMY.boot();
-    PTOLEMY.handler.send('ping', 'Hello', function(data, promise) {
-      console.log('Reply from worker on "PING" request":', data);
+    var send = PTOLEMY.handler.send.bind(PTOLEMY.handler);
+    var svgns = "http://www.w3.org/2000/svg";
+    send('start', 'worker_main.js', function(data, promise) {
+      console.log("started");
+      send('tile', null, function(data, promise) {
+        console.log('Reply from worker on tile request', data);
+        if (data.type === "FeatureCollection") {
+          var max_x = 0,
+              max_y = 0,
+              min_x = 9999,
+              min_y = 9999,
+              nums = {};
+
+          data.features.map(function(el) {
+            if (el.geometry.coordinates) {
+              var result = el.geometry.coordinates.map(function(coord) {
+                coord[0] += 123;
+                coord[1] -= 37;
+                coord[0] *= 8000;
+                coord[1] *= 8000;
+                coord[0] -= 5250;
+                coord[1] -= 6300;
+                if (coord[0] > max_x) {
+                  max_x = coord[0];
+                } else if (coord[0] < min_x) {
+                  min_x = coord[0];
+                }
+                if (coord[1] > max_y) {
+                  max_y = coord[1];
+                } else if (coord[1] < min_y) {
+                  min_y = coord[1];
+                }
+                return coord.join(",");
+              });
+              //console.log(max_x, max_y, min_x, min_y);
+              var poly = document.createElementNS(svgns, "polyline");
+              poly.setAttribute("points", result.join(" "));
+              document.getElementById("svg").appendChild(poly);
+              //console.log(result.join(" "));
+            }
+          });
+          console.log(min_x, max_x, min_y, max_y);
+        }
+      });
+    });
+
+    send('ping', 'Hello', function(data, promise) {
+      console.log('Reply from worker on PING request:', data);
     });
   </script>
+  <style>
+polyline {
+  fill: none; stroke: black; stroke-width: 1;
+}
+  </style>
 </head>
 <body>
-  Hello, World
-  <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
-    <polyline points="20,20 40,25 60,40 80,120 120,140 200,180" style="fill:none;stroke:black;stroke-width:3" />
+  <svg id="svg" xmlns="http://www.w3.org/2000/svg" version="1.1" style="border: 1px solid black; height: 570px; width: 700px">
+    <polyline points="0,0 1,1" />
   </svg>
 </body>
 </html>

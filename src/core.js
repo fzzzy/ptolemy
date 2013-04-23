@@ -17,6 +17,7 @@ if (!globalScope.PTOLEMY) {
 }
 
 globalScope.PTOLEMY.enableWorker = true;
+globalScope.PTOLEMY.started = false;
 
 function setupMainThreadMessageHandler() {
   var worker;
@@ -42,12 +43,19 @@ function setupMainThreadMessageHandler() {
 function setupWorkerMessageHandler(handler) {
   handler.on('ping', function(data, promise) {
     console.log('Hello World from WebWorker');
-    console.warn('Hello World from WebWorker');
     setTimeout(function() {
       promise.resolve(data + ' World');
-      console.error('Hello World from WebWorker');
     }, 250);
   });
+  handler.on('start', function(data, promise) {
+    if (!globalScope.PTOLEMY.started) {
+      globalScope.PTOLEMY.started = true;
+      console.log("importing,", data);
+      importScripts(data+"?"+new Date());
+      promise.resolve(true);
+    }
+  });
+  return handler;
 }
 
 globalScope.PTOLEMY.boot = function boot() {
@@ -56,8 +64,10 @@ globalScope.PTOLEMY.boot = function boot() {
     globalScope.console = workerConsole;
 
     var handler = new MessageHandler('worker', globalScope);
+    globalScope.PTOLEMY.handler = handler;
     setupWorkerMessageHandler(handler);
   } else {
     globalScope.PTOLEMY.handler = setupMainThreadMessageHandler();
+    globalScope.PTOLEMY.started = true;
   }
 };
