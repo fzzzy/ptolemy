@@ -1,6 +1,11 @@
 
 'use strict';
 
+// Hack around the linter running this in a different context
+if (PTOLEMY === undefined) {
+  var PTOLEMY = {'handler': {'on': function(){}}};
+}
+
 PTOLEMY.handler.on('tile', function(data, promise) {
   promise.resolve({
     'features': [
