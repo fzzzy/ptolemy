@@ -7,62 +7,55 @@
   <script type="text/javascript" src="src/util.js"></script>
   <script type="text/javascript" src="src/worker.js"></script>
   <script type="text/javascript">
+
+    // requestAnimationFrame polyfill
+    var requestAnimationFrame = (function(){
+      return  window.requestAnimationFrame       ||
+              window.webkitRequestAnimationFrame ||
+              window.mozRequestAnimationFrame    ||
+              function( callback ){
+                window.setTimeout(callback, 1000 / 60);
+              };
+    })();
+
     PTOLEMY.enableWorker = location.hash.indexOf('disableWorker') === -1;
     PTOLEMY.workerSrc = 'src/worker_loader.js';
     PTOLEMY.boot();
     var send = PTOLEMY.handler.send.bind(PTOLEMY.handler);
     var svgns = "http://www.w3.org/2000/svg";
+    var start = new Date();
+    console.log("start", start.toString());
     send('start', 'worker_main.js', function(data, promise) {
-      console.log("started");
+      var svg = document.getElementById('svg');
       send('tile', null, function(data, promise) {
-        console.log('Reply from worker on tile request', data);
         if (data.type === "FeatureCollection") {
-          var max_x = 0,
-              max_y = 0,
-              min_x = 9999,
-              min_y = 9999,
-              nums = {};
-
-          data.features.map(function(el) {
+          var parent = svg.parentNode;
+          svg.parentNode.removeChild(svg);
+          for (var i = 0; i < data.features.length; i++) {
+            var el = data.features[i];
             if (el.geometry.coordinates) {
               var result = el.geometry.coordinates.map(function(coord) {
-                coord[0] += 123;
-                coord[1] -= 37;
-                coord[0] *= 8000;
-                coord[1] *= 8000;
-                coord[0] -= 5250;
-                coord[1] -= 6300;
-                if (coord[0] > max_x) {
-                  max_x = coord[0];
-                } else if (coord[0] < min_x) {
-                  min_x = coord[0];
-                }
-                if (coord[1] > max_y) {
-                  max_y = coord[1];
-                } else if (coord[1] < min_y) {
-                  min_y = coord[1];
-                }
                 return coord.join(",");
               });
               //console.log(max_x, max_y, min_x, min_y);
               var poly = document.createElementNS(svgns, "polyline");
               poly.setAttribute("points", result.join(" "));
-              document.getElementById("svg").appendChild(poly);
+              svg.appendChild(poly);
               //console.log(result.join(" "));
             }
+          }
+          console.log("drawing", new Date().valueOf() - start.valueOf());
+          parent.appendChild(svg);
+          requestAnimationFrame(function() {
+            console.log("drawn", new Date().valueOf() - start.valueOf());
           });
-          console.log(min_x, max_x, min_y, max_y);
         }
       });
-    });
-
-    send('ping', 'Hello', function(data, promise) {
-      console.log('Reply from worker on PING request:', data);
     });
   </script>
   <style>
 polyline {
-  fill: none; stroke: black; stroke-width: 1;
+  fill: none; stroke: black; stroke-width: 0.5px;
 }
   </style>
 </head>

@@ -42,15 +42,11 @@ function setupMainThreadMessageHandler() {
 
 function setupWorkerMessageHandler(handler) {
   handler.on('ping', function(data, promise) {
-    console.log('Hello World from WebWorker');
-    setTimeout(function() {
-      promise.resolve(data + ' World');
-    }, 250);
+    promise.resolve('pong');
   });
   handler.on('start', function(data, promise) {
     if (!globalScope.PTOLEMY.started) {
       globalScope.PTOLEMY.started = true;
-      console.log('importing,', data);
       importScripts(data+'?'+new Date());
       promise.resolve(true);
     }
