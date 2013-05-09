@@ -1,4 +1,10 @@
-# Readme
+# Minimal-Readme
+
+## About
+
+This implements the minimal functionality to render some "raw" OpenStreetMap data (using the `osm` format) to a canvas by converting the `osm` data to `json` and then render it using a dump simple renderer (don't expect anything awesome at this point ;) ).
+
+## Usage
 
 The file `muenchen.osm` was created using:
 
