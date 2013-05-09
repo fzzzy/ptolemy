@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ptolemy</title>
+  <script src="muenchen.osm.js">
+    
+  </script>
+  <style>
+polyline {
+  fill: none; stroke: black; stroke-width: 0.5px;
+}
+canvas {
+  border: 1px solid black; height: 570px; width: 700px
+}
+  </style>
+</head>
+<body>
+  <canvas id="canvas" height="570" width="700"></canvas>
+
+  <script type="text/javascript">
+    var canvasWidth = 700;
+    var canvasHeight = 570;
+
+    var bounds = MAP_DATA.bounds;
+    
+    var minlon = bounds.minlon;
+    var maxlat = bounds.maxlat;
+
+    var xScale = canvasWidth/(bounds.maxlon - bounds.minlon);
+    var yScale = canvasHeight/(bounds.maxlat - bounds.minlat);
+
+    var scale = Math.min(xScale, yScale);
+
+    var ctx = document.getElementById('canvas').getContext('2d');
+    ctx.scale(scale, scale);
+
+    var landuse = MAP_DATA.cache.landuse;
+    var highway = MAP_DATA.cache.highway;
+
+    var ways = MAP_DATA.ways;
+    var nodes = MAP_DATA.nodes;
+
+    function drawArea(shape, fillShape) {
+      ctx.beginPath();
+
+      for (var i = 0; i < shape.length; i++) {
+        var nodeIdx = shape[i];
+        var node = nodes[nodeIdx];
+
+        var x = node[0] - minlon;
+        var y = maxlat - node[1];
+        if (i == 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        } 
+      }
+
+      if (fillShape) {
+        ctx.fill();
+      } else {
+        ctx.stroke();
+      }
+    }
+
+    ctx.fillStyle = 'green';
+    for (var i = 0; i < landuse.length; i++) {
+      
+      var way = ways[landuse[i]];
+      drawArea(way.nodes, true);
+    }
+
+    ctx.strokeStyle = 'orange';
+    ctx.lineWidth = 0.00002;
+    for (var i = 0; i < highway.length; i++) {
+      var way = ways[highway[i]];
+      drawArea(way.nodes, false);
+    }
+    
+  </script>
+
+</body>
+</html>
