@@ -31,6 +31,8 @@ canvas {
     var minlon = bounds.minlon;
     var maxlat = bounds.maxlat;
 
+    var degree = (bounds.maxlon - bounds.minlon)/(canvasWidth/256);
+
     var yExtraScale = 1.4;
 
     var xScale = (canvasWidth/(bounds.maxlon - bounds.minlon));
@@ -116,7 +118,7 @@ canvas {
       {
         name: 'barrier',
         fill: true,
-        fillStyle: 'cyan'
+        fillStyle: 'burlywood'
       },
       {
         name: 'highway',
