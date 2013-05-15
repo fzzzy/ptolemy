@@ -3,9 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
-  <script src="muenchen.osm.js">
-    
-  </script>
+  <script src="munich2.osm.js"></script>
   <style>
 polyline {
   fill: none; stroke: black; stroke-width: 0.5px;
@@ -19,21 +17,26 @@ canvas {
   <canvas id="canvas" height="570" width="700"></canvas>
 
   <script type="text/javascript">
-    var canvasWidth = 700;
-    var canvasHeight = 570;
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+
+    var mapMargin = 10;
+    ctx.translate(mapMargin, mapMargin);
+
+    var canvasWidth = canvas.width - 2 * mapMargin;
+    var canvasHeight = canvas.height - 2 * mapMargin;
 
     var bounds = MAP_DATA.bounds;
     
     var minlon = bounds.minlon;
     var maxlat = bounds.maxlat;
 
-    var xScale = canvasWidth/(bounds.maxlon - bounds.minlon);
-    var yScale = canvasHeight/(bounds.maxlat - bounds.minlat);
+    var yExtraScale = 1.4;
+
+    var xScale = (canvasWidth/(bounds.maxlon - bounds.minlon));
+    var yScale = (canvasHeight/(bounds.maxlat - bounds.minlat)) * yExtraScale;
 
     var scale = Math.min(xScale, yScale);
-
-    var ctx = document.getElementById('canvas').getContext('2d');
-    ctx.scale(scale, scale);
 
     var landuse = MAP_DATA.cache.landuse;
     var highway = MAP_DATA.cache.highway;
@@ -64,20 +67,213 @@ canvas {
       }
     }
 
-    ctx.fillStyle = 'green';
-    for (var i = 0; i < landuse.length; i++) {
-      
-      var way = ways[landuse[i]];
-      drawArea(way.nodes, true);
-    }
+    var mapBgColor = 'rgb(237, 230, 220)';
 
-    ctx.strokeStyle = 'orange';
-    ctx.lineWidth = 0.00002;
-    for (var i = 0; i < highway.length; i++) {
-      var way = ways[highway[i]];
-      drawArea(way.nodes, false);
+    var wayMapping = [
+      {
+        name: 'landuse',
+        fill: true,
+        fillStyle: 'green'
+      },
+      {
+        name: 'waterway',
+        fill: true,
+        strokeStyle: '#00899E',
+        fillStyle: '#00899E',
+        lineWidth: 0.00004
+      },
+      {
+        name: 'amenity',
+        fill: true,
+        fillStyle: 'rgb(244, 208, 207)'
+      },
+      {
+        name: 'natural',
+        fill: true,
+        fillStyle: 'yellow'
+      },
+      {
+        name: 'leisure',
+        fill: true,
+        fillStyle: '#68B300'
+      },
+      {
+        name: 'surface',
+        fill: false,
+        strokeStyle: 'brown',
+        lineWidth: 0.00002
+      },
+      {
+        name: 'place',
+        fill: true,
+        fillStyle: 'burlywood'
+      },
+      {
+        name: 'building',
+        fill: true,
+        fillStyle: 'burlywood'
+      },
+      {
+        name: 'barrier',
+        fill: true,
+        fillStyle: 'cyan'
+      },
+      {
+        name: 'highway',
+        fill: false,
+        strokeStyle: 'orange',
+        lineWidth: 0.00003
+      },
+    ];
+
+    console.time('render-start');
+
+    // Draw the background of the map.
+    ctx.fillStyle = mapBgColor;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // Scale the map.
+    ctx.scale(scale, scale * yExtraScale);
+
+    // Rounded lines look cute :)
+    ctx.lineCap = 'round';
+
+    // Draw all the ways.
+    for (var i = 0; i < wayMapping.length; i++) {
+      var wayMap = wayMapping[i];
+      var wayCache = MAP_DATA.cache[wayMap.name];
+      var fillWay = wayMap.fill;
+
+      assert(wayCache);
+
+      ctx.lineWidth = wayMap.lineWidth;
+      ctx.strokeStyle = wayMap.strokeStyle;
+      ctx.fillStyle = wayMap.fillStyle;
+      if (wayMap.name === 'waterway') {
+        for (var n = 0; n < wayCache.length; n++) {
+          var way = ways[wayCache[n]];
+          drawArea(way.nodes, way.tags['waterway'] == 'riverbank');
+        }  
+      } else if (wayMap.name === 'highway') {
+
+        var bigRoadWidth = 0.00012;
+        var outlines = [
+            'tertiary', 'tertiary_link', 'secondary', 'secondary_link', 
+            'living_street', 'residential'
+          ];
+
+        ctx.strokeStyle = '#686523';
+        ctx.lineWidth = bigRoadWidth * 1.1;
+
+        // First loop is about painting all the outlines.
+        for (var n = 0; n < wayCache.length; n++) {
+          var way = ways[wayCache[n]];
+          var type = way.tags.highway;
+
+          if (outlines.indexOf(type) !== -1) {
+            drawArea(way.nodes, false);  
+          }
+        }
+
+        for (var n = 0; n < wayCache.length; n++) {
+          var way = ways[wayCache[n]];
+          var type = way.tags.highway;
+
+          if (!setHighwayStyle(ctx, type)) {
+            continue;
+          }
+          drawArea(way.nodes, false);
+        }  
+      } else {
+        for (var n = 0; n < wayCache.length; n++) {
+          var way = ways[wayCache[n]];
+          drawArea(way.nodes, fillWay);
+        }    
+      }  
     }
     
+    console.timeEnd('render-start');
+
+    function setHighwayStyle(ctx, type) {
+      switch (type) {
+        case 'unclassified':
+        case 'cycleway':
+        case 'elevator':
+        case 'crossing':
+          // Ignore these for now.
+          return false;
+          break;
+
+        case 'motorway':
+        case 'motorway_link':
+        case 'trunk':
+        case 'trunk_link':
+          ctx.strokeStyle = '#FFA200';
+          ctx.lineWidth =  bigRoadWidth;
+          break;
+
+        case 'tertiary':
+        case 'tertiary_link':
+        case 'secondary':
+        case 'secondary_link':
+          ctx.strokeStyle = '#F7EF0D';
+          ctx.lineWidth =  bigRoadWidth;
+          break;
+
+        case 'living_street':
+        case 'residential':
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = bigRoadWidth;
+          break;
+
+        case 'construction':
+        case 'steps':
+        case 'footway':
+        case 'pedestrian':
+        case 'path':
+        case 'service':
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = 0.00002;
+          break;
+
+        case 'track':
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = 0.00001;
+          break;
+
+        default:
+          console.log('unsupportd highway type:', type);
+          ctx.strokeStyle = 'red';
+          ctx.lineWidth = 0.00005;
+          break;
+      }
+      return true;
+    }
+
+    function AssertionError(msg) {
+      this.message = msg || "";
+      this.name = "AssertionError";
+    }
+    AssertionError.prototype = Error.prototype;
+
+    /* Call assert(cond, description1, ...)
+      An AssertionError will be thrown if the cond is false.  All parameters will be logged to the console, 
+      and be part of the error.
+      */
+    function assert(cond) {
+      if (! cond) {
+        var args = ["Assertion error:"].concat(Array.prototype.slice.call(arguments, 1));
+        console.error.apply(console, args);
+        // This is mostly for Firefox, and should perhaps be conditional on that;
+        // this is because the standard Web Console often doesn't show proper stacks for errors
+        // (depending on where the error was thrown)
+        if (console.trace) {
+          console.trace();
+        }
+        throw new AssertionError(args.join(" "));
+      }
+    }
+
   </script>
 
 </body>

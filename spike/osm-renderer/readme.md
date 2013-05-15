@@ -2,7 +2,7 @@
 
 ## About
 
-This implements the minimal functionality to render some "raw" OpenStreetMap data (using the `osm` format) to a canvas by converting the `osm` data to `json` and then render it using a dump simple renderer (don't expect anything awesome at this point ;) ).
+This implements the minimal functionality to render some "raw" OpenStreetMap data (using the `osm` format) to a canvas by converting the `osm` data to `json` and then render it using a simple renderer (don't expect anything awesome at this point ;) ).
 
 ## Usage
 
@@ -10,6 +10,12 @@ The file `muenchen.osm` was created using:
 
 ```
 wget -O muenchen.osm "http://api.openstreetmap.org/api/0.6/map?bbox=11.54,48.14,11.543,48.145"
+```
+
+Larger area:
+
+```
+wget -O muenchen2.osm "http://api.openstreetmap.org/api/0.6/map?bbox=11.56,48.13,11.59,48.145"
 ```
 
 The area recorded is roughly

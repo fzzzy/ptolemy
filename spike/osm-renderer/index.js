@@ -47,7 +47,14 @@ xmlreader.read(fileContent, function(err, res) {
   var wayCache = {
     highway: [],
     landuse: [],
-    surface: []
+    natural: [],
+    leisure: [],
+    waterway: [],
+    amenity: [],
+    place: [],
+    barrier: [],
+    surface: [],
+    building: []
   };
 
   var wayCacheKeys = Object.keys(wayCache);
