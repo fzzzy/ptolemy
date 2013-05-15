@@ -75,6 +75,50 @@ xmlreader.read(fileContent, function(err, res) {
     }
   }
 
+  var highwayOrder = ['motorway',
+    'motorway_link',
+    'trunk',
+    'trunk_link',
+    'primary',
+    'primary_link',
+    'secondary',
+    'secondary_link',
+    'tertiary',
+    'tertiary_link',
+    'living_street',
+    'pedestrian',
+    'residential',
+    'unclassified',
+    'service',
+    'track',
+    'bus_guideway',
+    'raceway',
+    'road',
+    'path',
+    'footway',
+    'cycleway',
+    'bridleway',
+    'steps',
+    'proposed',
+    'construction',
+    'unclassified'
+  ];
+
+  // Sort the highways to render "big" streets first.
+
+  wayCache.highway = wayCache.highway.sort(function(a, b) {
+    function getOrderIndex(wayId) {
+      var idx = highwayOrder.indexOf(ways[wayId].tags.highway);
+      if (idx === -1) {
+        return 999; // Make it the last item.
+      } else {
+        return idx;
+      }
+    }
+
+    return getOrderIndex(b) - getOrderIndex(a);
+  });
+
   // TODO: Handle relations here as well.
 
   var bounds = xmlMain.bounds.at(0).attributes();
