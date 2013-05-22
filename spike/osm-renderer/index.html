@@ -38,8 +38,10 @@ canvas {
     // --- Translate the canvas context to make drawing go at the right spot ---
     var bounds = MAP_DATA.bounds;
 
-    var pixelPerMeter = calcPixelPerMeter(CURRENT_ZOOM);
-    ctx.translate(-bounds.minx * pixelPerMeter, -bounds.miny * pixelPerMeter);
+    var pixelPerMeter = getPixelPerMeter(CURRENT_ZOOM);
+    ctx.scale(pixelPerMeter, pixelPerMeter);
+
+    ctx.translate(-bounds.minx, -bounds.miny);
     
     render();
   </script>

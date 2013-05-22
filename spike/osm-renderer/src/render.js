@@ -1,7 +1,7 @@
 // --- Actual rendering ---
 
 // Adjust this based on current zoom level.
-var LINE_WIDTH_ROOT = 0.4; 
+var LINE_WIDTH_ROOT = 1.5; 
 var bigRoadWidth = LINE_WIDTH_ROOT * 10;
 
 var ways = MAP_DATA.ways;
@@ -16,8 +16,8 @@ function drawArea(shape, fillShape) {
 
     // var x = node[0] - minlon;
     // var y = maxlat - node[1];
-    var x = node[0] * pixelPerMeter;
-    var y = node[1] * pixelPerMeter;
+    var x = node[0];
+    var y = node[1];
 
     if (i == 0) {
       ctx.moveTo(x, y);

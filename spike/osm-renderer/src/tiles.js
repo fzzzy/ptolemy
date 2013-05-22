@@ -6,7 +6,23 @@ var equatorExtendHalf = 20037508.342789241555641;
 var equatorExtend = equatorExtendHalf * 2;
 var TILE_SIZE = 256; // 256 x 256 is the default tile size.
 
-function calcPixelPerMeter(zoomLevel) {
-  var numberOfTiles = Math.pow(2, zoomLevel);
+'use strict';
+
+function getNumberOfTiles(zoomLevel) {
+  return Math.pow(2, zoomLevel);
+}
+
+function getPixelPerMeter(zoomLevel) {
+  var numberOfTiles = getNumberOfTiles(zoomLevel);
   return TILE_SIZE * numberOfTiles / equatorExtend;
 }
+
+function getTileFromMeter(x, y, zoomLevel) {
+  var numberOfTiles = getNumberOfTiles(zoomLevel);
+
+  var tileX = Math.floor((x/equatorExtend) * numberOfTiles);
+  var tileY = Math.floor((y/equatorExtend) * numberOfTiles);
+  return [tileX, tileY];
+}
+
+
