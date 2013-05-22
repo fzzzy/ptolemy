@@ -1,6 +1,9 @@
 var fs = require('fs');
 var xmlreader = require('xmlreader');
 
+var tiles = require('./src/tiles');
+var getMeterFromLonLat = tiles.getMeterFromLonLat;
+
 var fileName = process.argv[2];
 if (!fileName) {
   console.log('Usage `node index.js <file.osm>`');
@@ -28,62 +31,6 @@ function Way(xml) {
   }
 }
 
-// The algorithms are based on the code found at:
-//   http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
-var tileSize = 256;
-var zoomZeroResolution = 40075016.685578483111282 / tileSize;
-
-// The 20037508.342789241555641 corresponds roughly to 1/2 of the equator extend.
-// As calculated from the radius of the earth: 2 * PI * 6378137 / 2
-var equatorExtendHalf = 20037508.342789241555641;
-var degreeToMeter = equatorExtendHalf / 180;
-
-
-/**
- * Converts from WGS84 longitute and latitute coordiantes into mercator
- * projected meter system.
- *
- * Input:
- *
- *   +-----------------------+
- *   |          ^            |
- *   |      lat |            |  lat: [-90 to 90] degrees
- *   |          +--->        |  lon: [-180 to 180] degrees
- *   |           lon         |
- *   |                       |
- *   +-----------------------+
- *
- * Output:
- *
- *   +-----------------------+
- *   | +---> x               |
- *   | |                     |  x: [0 to 2 * equatorExtendHalf] meter
- *   | . y                   |  y: [0 to 2 * equatorExtendHalf] meter
- *   |                       |
- *   |                       |
- *   +-----------------------+
- */
-function convertLonLat2Meter(lon, lat) {
-  // Project the y coordinate using mercator projection.
-  var latProj;
-  latProj = Math.log(Math.tan((Math.PI/360) * (90 + lat))) / (Math.PI / 180);
-
-  // Convert degrees to meters.
-  var meterX = lon * degreeToMeter;
-  var meterY = latProj * degreeToMeter;
-
-  // Till this point, the origin of meterX and meterY is centered on the origin
-  // relative to the Lon/Lat coordiante system. However, for rendering purpose
-  // it's more suiteable to use a coordinate system with origin in the top-left
-  // corner. This maps well with the HTML Canvas API as well as with the 
-  // GoogleTile x/y format.
-
-  meterX = meterX + equatorExtendHalf;
-  meterY = equatorExtendHalf - meterY;
-
-  return [meterX, meterY];
-}
-
 xmlreader.read(fileContent, function(err, res) {
   if (err) throw err;
 
@@ -95,7 +42,7 @@ xmlreader.read(fileContent, function(err, res) {
   var xmlNodes = xmlMain.node;
   for (i = 0; i < xmlNodes.count(); i++) {
     attr = xmlNodes.at(i).attributes();
-    nodes[attr.id] = convertLonLat2Meter(parseFloat(attr.lon), parseFloat(attr.lat));
+    nodes[attr.id] = getMeterFromLonLat(parseFloat(attr.lon), parseFloat(attr.lat));
   }
 
   var ways = {};
@@ -179,8 +126,8 @@ xmlreader.read(fileContent, function(err, res) {
 
   var bounds = xmlMain.bounds.at(0).attributes();
 
-  var min = convertLonLat2Meter(parseFloat(bounds.minlon), parseFloat(bounds.maxlat));
-  var max = convertLonLat2Meter(parseFloat(bounds.maxlon), parseFloat(bounds.minlat));
+  var min = getMeterFromLonLat(parseFloat(bounds.minlon), parseFloat(bounds.maxlat));
+  var max = getMeterFromLonLat(parseFloat(bounds.maxlon), parseFloat(bounds.minlat));
 
   var obj = {
     bounds: {
