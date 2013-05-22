@@ -25,4 +25,19 @@ function getTileFromMeter(x, y, zoomLevel) {
   return [tileX, tileY];
 }
 
+function getTileBoundingBoxInMeter(tileX, tileY, zoomLevel) {
+  var numberOfTiles = getNumberOfTiles(zoomLevel);
+
+  var minX = tileX * equatorExtend / numberOfTiles;
+  var minY = tileY * equatorExtend / numberOfTiles;
+  var width = equatorExtend / numberOfTiles;
+  var height = width;
+
+  return {
+    minX: minX, 
+    minY: minY, 
+    width: width, 
+    height: height
+  };
+}
 

@@ -12,7 +12,7 @@ polyline {
   fill: none; stroke: black; stroke-width: 0.5px;
 }
 canvas {
-  border: 1px solid black; height: 570px; width: 700px
+  border: 1px solid black;
 }
   </style>
 </head>
@@ -25,25 +25,42 @@ canvas {
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
 
+    // --- Translate the canvas context to make drawing go at the right spot ---
+    var bounds = MAP_DATA.bounds;
+
+    var tileMin = getTileFromMeter(bounds.minX, bounds.minY, CURRENT_ZOOM);
+    var tileMax = getTileFromMeter(bounds.maxX, bounds.maxY, CURRENT_ZOOM);
+
+    var tileXCount = tileMax[0] - tileMin[0] + 1;
+    var tileYCount = tileMax[0] - tileMin[0] + 1;
+
     // --- Add margin around the map and color background ---
     var mapMargin = 10;
-    var canvasWidth = canvas.width - 2 * mapMargin;
-    var canvasHeight = canvas.height - 2 * mapMargin;
+
+    var canvasWidth = tileXCount * TILE_SIZE;
+    var canvasHeight = tileYCount * TILE_SIZE;
+
+    canvas.width = canvasWidth + 2 * mapMargin;
+    canvas.height = canvasHeight + 2 * mapMargin;
+    
     ctx.translate(mapMargin, mapMargin);
 
     // Draw the background of the map.
     ctx.fillStyle = 'rgb(237, 230, 220)';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // --- Translate the canvas context to make drawing go at the right spot ---
-    var bounds = MAP_DATA.bounds;
+    // --- Draw the individual tiles of the map ---
 
-    var pixelPerMeter = getPixelPerMeter(CURRENT_ZOOM);
-    ctx.scale(pixelPerMeter, pixelPerMeter);
+    for (var x = 0; x < tileXCount; x++) {
+      for (var y = 0; y < tileYCount; y++) {
+        ctx.save();
+        ctx.translate(x * TILE_SIZE, y * TILE_SIZE);
 
-    ctx.translate(-bounds.minx, -bounds.miny);
-    
-    render();
+        renderTile(x + tileMin[0], y + tileMin[1], CURRENT_ZOOM, ctx);    
+
+        ctx.restore();
+      }
+    }
   </script>
 
 </body>

@@ -90,6 +90,29 @@ var wayMapping = [
   },
 ];
 
+function renderTile(x, y, zoomLevel, ctx) {
+  ctx.save();
+
+  // Figure out the boundary box of the tile to render.
+  var tileBB = getTileBoundingBoxInMeter(x, y, zoomLevel);
+  var pixelPerMeter = getPixelPerMeter(zoomLevel);
+
+  ctx.scale(pixelPerMeter, pixelPerMeter);
+  ctx.translate(-tileBB.minX, -tileBB.minY);
+
+  console.log(tileBB);
+
+  // Clip to the boundingBox of the tile on the canvas to prevent drawing outside
+  // of the current tile.
+
+  ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
+  ctx.clip();
+
+  render();
+
+  ctx.restore();
+}
+
 function render() {
   console.time('render-start');
 

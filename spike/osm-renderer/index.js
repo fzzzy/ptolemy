@@ -188,10 +188,10 @@ xmlreader.read(fileContent, function(err, res) {
       minlon: parseFloat(bounds.minlon),
       maxlat: parseFloat(bounds.maxlat),
       maxlon: parseFloat(bounds.maxlon),
-      minx: min[0],
-      miny: min[1],
-      maxx: max[0],
-      maxy: max[1]
+      minX: min[0],
+      minY: min[1],
+      maxX: max[0],
+      maxY: max[1]
     },
     cache: wayCache,
     nodes: nodes,
