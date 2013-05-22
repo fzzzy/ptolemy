@@ -82,16 +82,27 @@ function getTileBoundingBoxInMeter(tileX, tileY, zoomLevel) {
 
   return {
     minX: minX, 
-    minY: minY, 
+    minY: minY,
+    maxX: minX + width,
+    maxY: minY + height,
     width: width, 
     height: height
   };
 }
 
+function intersect(a, b) {
+  if(a.minX > b.maxX || b.minX > a.maxX || a.minY > b.maxY || b.minY > a.maxY) {
+    return false;
+  }
+  return true;
+}
+
 if (typeof exports !== 'undefined') {
+  exports.equatorExtend = equatorExtend;
   exports.getMeterFromLonLat = getMeterFromLonLat;
   exports.getNumberOfTiles = getNumberOfTiles;
   exports.getPixelPerMeter = getPixelPerMeter;
   exports.getTileFromMeter = getTileFromMeter;
   exports.getTileBoundingBoxInMeter = getTileBoundingBoxInMeter;
+  exports.intersect = intersect;
 }

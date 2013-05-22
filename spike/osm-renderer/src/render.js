@@ -11,8 +11,7 @@ function drawArea(shape, fillShape) {
   ctx.beginPath();
 
   for (var i = 0; i < shape.length; i++) {
-    var nodeIdx = shape[i];
-    var node = nodes[nodeIdx];
+    var node = shape[i];
 
     // var x = node[0] - minlon;
     // var y = maxlat - node[1];
@@ -108,12 +107,14 @@ function renderTile(x, y, zoomLevel, ctx) {
   ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
   ctx.clip();
 
-  render();
+  // Lookup the wayMapping from the mapData.
+  var ways = MAP_DATA.tiles[zoomLevel + '/' + x + '/' + y];
+  render(ways);  
 
   ctx.restore();
 }
 
-function render() {
+function render(ways) {
   console.time('render-start');
 
   // Rounded lines look cute :)
@@ -122,7 +123,7 @@ function render() {
   // Draw all the ways.
   for (var i = 0; i < wayMapping.length; i++) {
     var wayMap = wayMapping[i];
-    var wayCache = MAP_DATA.cache[wayMap.name];
+    var wayCache = ways[wayMap.name];
     var fillWay = wayMap.fill;
 
     assert(wayCache);
@@ -132,7 +133,7 @@ function render() {
     ctx.fillStyle = wayMap.fillStyle;
     if (wayMap.name === 'waterway') {
       for (var n = 0; n < wayCache.length; n++) {
-        var way = ways[wayCache[n]];
+        var way = wayCache[n];
         drawArea(way.nodes, way.tags['waterway'] == 'riverbank');
       }  
     } else if (wayMap.name === 'highway') {
@@ -147,7 +148,7 @@ function render() {
 
       // First loop is about painting all the outlines.
       for (var n = 0; n < wayCache.length; n++) {
-        var way = ways[wayCache[n]];
+        var way = wayCache[n];
         var type = way.tags.highway;
 
         if (outlines.indexOf(type) !== -1) {
@@ -156,7 +157,7 @@ function render() {
       }
 
       for (var n = 0; n < wayCache.length; n++) {
-        var way = ways[wayCache[n]];
+        var way = wayCache[n];
         var type = way.tags.highway;
 
         if (!setHighwayStyle(ctx, type)) {
@@ -166,7 +167,7 @@ function render() {
       }  
     } else {
       for (var n = 0; n < wayCache.length; n++) {
-        var way = ways[wayCache[n]];
+        var way = wayCache[n];
         drawArea(way.nodes, fillWay);
       }    
     }  
