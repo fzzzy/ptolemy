@@ -17,31 +17,45 @@ canvas {
   <canvas id="canvas" height="570" width="700"></canvas>
 
   <script type="text/javascript">
+    var CURRENT_ZOOM = 15;
+
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
 
-    var mapMargin = 10;
-    ctx.translate(mapMargin, mapMargin);
+    // --- Constants & helpers to do meter -> pixel conversion ---
 
+    // The 20037508.342789241555641 corresponds roughly to 1/2 of the equator
+    // extend. As calculated from the radius of the earth: 2 * PI * 6378137 / 2.
+    var equatorExtendHalf = 20037508.342789241555641;
+    var equatorExtend = equatorExtendHalf * 2;
+    var TILE_SIZE = 256; // 256 x 256 is the default tile size.
+
+    function calcPixelPerMeter(zoomLevel) {
+      var numberOfTiles = Math.pow(2, zoomLevel);
+      return TILE_SIZE * numberOfTiles / equatorExtend;
+    }
+
+    // --- Add margin around the map and color background ---
+    var mapMargin = 10;
     var canvasWidth = canvas.width - 2 * mapMargin;
     var canvasHeight = canvas.height - 2 * mapMargin;
+    ctx.translate(mapMargin, mapMargin);
 
+    // Draw the background of the map.
+    ctx.fillStyle = 'rgb(237, 230, 220)';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // --- Translate the canvas context to make drawing go at the right spot ---
     var bounds = MAP_DATA.bounds;
-    
-    var minlon = bounds.minlon;
-    var maxlat = bounds.maxlat;
 
-    var degree = (bounds.maxlon - bounds.minlon)/(canvasWidth/256);
+    var pixelPerMeter = calcPixelPerMeter(CURRENT_ZOOM);
+    ctx.translate(-bounds.minx * pixelPerMeter, -bounds.miny * pixelPerMeter);
 
-    var yExtraScale = 1.4;
+    // --- Actual rendering ---
 
-    var xScale = (canvasWidth/(bounds.maxlon - bounds.minlon));
-    var yScale = (canvasHeight/(bounds.maxlat - bounds.minlat)) * yExtraScale;
+    // Adjust this based on current zoom level.
+    var LINE_WIDTH_ROOT = 0.4; 
 
-    var scale = Math.min(xScale, yScale);
-
-    var landuse = MAP_DATA.cache.landuse;
-    var highway = MAP_DATA.cache.highway;
 
     var ways = MAP_DATA.ways;
     var nodes = MAP_DATA.nodes;
@@ -53,8 +67,11 @@ canvas {
         var nodeIdx = shape[i];
         var node = nodes[nodeIdx];
 
-        var x = node[0] - minlon;
-        var y = maxlat - node[1];
+        // var x = node[0] - minlon;
+        // var y = maxlat - node[1];
+        var x = node[0] * pixelPerMeter;
+        var y = node[1] * pixelPerMeter;
+
         if (i == 0) {
           ctx.moveTo(x, y);
         } else {
@@ -69,8 +86,6 @@ canvas {
       }
     }
 
-    var mapBgColor = 'rgb(237, 230, 220)';
-
     var wayMapping = [
       {
         name: 'landuse',
@@ -82,7 +97,7 @@ canvas {
         fill: true,
         strokeStyle: '#00899E',
         fillStyle: '#00899E',
-        lineWidth: 0.00004
+        lineWidth: LINE_WIDTH_ROOT * 5,
       },
       {
         name: 'amenity',
@@ -103,7 +118,7 @@ canvas {
         name: 'surface',
         fill: false,
         strokeStyle: 'brown',
-        lineWidth: 0.00002
+        lineWidth: LINE_WIDTH_ROOT * 1
       },
       {
         name: 'place',
@@ -124,18 +139,11 @@ canvas {
         name: 'highway',
         fill: false,
         strokeStyle: 'orange',
-        lineWidth: 0.00003
+        lineWidth: LINE_WIDTH_ROOT * 3
       },
     ];
 
     console.time('render-start');
-
-    // Draw the background of the map.
-    ctx.fillStyle = mapBgColor;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    // Scale the map.
-    ctx.scale(scale, scale * yExtraScale);
 
     // Rounded lines look cute :)
     ctx.lineCap = 'round';
@@ -158,7 +166,7 @@ canvas {
         }  
       } else if (wayMap.name === 'highway') {
 
-        var bigRoadWidth = 0.00012;
+        var bigRoadWidth = LINE_WIDTH_ROOT * 10;
         var outlines = [
             'tertiary', 'tertiary_link', 'secondary', 'secondary_link', 
             'living_street', 'residential'
@@ -235,22 +243,24 @@ canvas {
         case 'path':
         case 'service':
           ctx.strokeStyle = 'white';
-          ctx.lineWidth = 0.00002;
+          ctx.lineWidth = bigRoadWidth * 0.3;
           break;
 
         case 'track':
           ctx.strokeStyle = 'white';
-          ctx.lineWidth = 0.00001;
+          ctx.lineWidth = bigRoadWidth * 0.3;
           break;
 
         default:
           console.log('unsupportd highway type:', type);
           ctx.strokeStyle = 'red';
-          ctx.lineWidth = 0.00005;
+          ctx.lineWidth = bigRoadWidth;
           break;
       }
       return true;
     }
+
+    // --- Helper assert() function ---
 
     function AssertionError(msg) {
       this.message = msg || "";
