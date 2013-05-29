@@ -99,6 +99,8 @@ function renderTile(x, y, zoomLevel, ctx) {
   ctx.scale(pixelPerMeter, pixelPerMeter);
   ctx.translate(-tileBB.minX, -tileBB.minY);
 
+  var tileName = zoomLevel + '/' + x + '/' + y;
+  console.log('Render tile:', tileName);
   console.log(tileBB);
 
   // Clip to the boundingBox of the tile on the canvas to prevent drawing outside
@@ -108,7 +110,8 @@ function renderTile(x, y, zoomLevel, ctx) {
   ctx.clip();
 
   // Lookup the wayMapping from the mapData.
-  var ways = MAP_DATA.tiles[zoomLevel + '/' + x + '/' + y];
+  var ways = MAP_DATA.tiles[tileName];
+
   render(ways);  
 
   ctx.restore();

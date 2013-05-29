@@ -27,13 +27,13 @@ function getBoundingBoxFromNodes(nodes) {
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
     if (y > maxY) maxY = y;
+  }
 
-    return {
-      minX: minX, 
-      minY: minY,
-      maxX: maxX,
-      maxY: maxY
-    }
+  return {
+    minX: minX,
+    minY: minY,
+    maxX: maxX,
+    maxY: maxY
   }
 }
 
@@ -46,8 +46,6 @@ function Way(xml, osmNodes) {
     nodes.push(osmNodes[nodeId]);
   }
 
-  this.boundingBox = getBoundingBoxFromNodes(nodes);
-
   var tags = this.tags = {};
   var xmlTags = xml.tag;
   // Some ways that are used in relations only have sometimes no tags.
@@ -56,6 +54,12 @@ function Way(xml, osmNodes) {
       var tagAttr = xmlTags.at(i).attributes();
       tags[tagAttr.k] = tagAttr.v;
     }
+  }
+
+  this.boundingBox = getBoundingBoxFromNodes(nodes);
+
+  if (xml.attributes().id == '23458583') {
+    console.log('BoundingBox', JSON.stringify(this.boundingBox));
   }
 }
 
@@ -131,7 +135,7 @@ xmlreader.read(fileContent, function(err, res) {
     var tileMin = getTileFromMeter(min[0], min[1], zoom);
     var tileMax = getTileFromMeter(max[0], max[1], zoom);
 
-    for (var x = tileMin[0]; x <= tileMax[0]; x++) {
+    for (var x = tileMin[0]; x <= tileMax[0]  ; x++) {
       for (var y = tileMin[1]; y <= tileMax[1]; y++) {
         var tileBoundingBox = getTileBoundingBoxInMeter(x, y, zoom);
 
@@ -148,7 +152,7 @@ xmlreader.read(fileContent, function(err, res) {
           building: []
         };
 
-        console.log('Look at xyz=(%d, %d, %d)', x, y, zoom);
+        console.log('Look at zxy=(%d, %d, %d)', zoom, x, y);
         console.log(tileBoundingBox);
 
         var wayCacheKeys = Object.keys(wayCache);

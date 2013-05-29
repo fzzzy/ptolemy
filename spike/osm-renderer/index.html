@@ -20,7 +20,7 @@ canvas {
   <canvas id="canvas" height="570" width="700"></canvas>
 
   <script type="text/javascript">
-    var CURRENT_ZOOM = 15;
+    var CURRENT_ZOOM = 16;
 
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
@@ -32,7 +32,7 @@ canvas {
     var tileMax = getTileFromMeter(bounds.maxX, bounds.maxY, CURRENT_ZOOM);
 
     var tileXCount = tileMax[0] - tileMin[0] + 1;
-    var tileYCount = tileMax[0] - tileMin[0] + 1;
+    var tileYCount = tileMax[1] - tileMin[1] + 1;
 
     // --- Add margin around the map and color background ---
     var mapMargin = 10;
