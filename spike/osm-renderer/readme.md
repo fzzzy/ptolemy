@@ -28,4 +28,70 @@ To generate the `muenchen.osm.json` and `muenchen.osm.js` file, execute:
 node index.js muenchen.osm
 ```
 
-`index.html` implements a dump simple rendered reading the `muenchen.osm.js` data.
+The `xxx.osm.json` file is then converted into a binary file using
+
+```
+node binary-converter.js muenchen.osm.json
+```
+
+which emits `muenchen.osm.json.binary`.
+
+The index.html implements a simple rendererd that reads the binary format and then emits it.
+
+## Binary Format
+
+The format is 32bit aligned. `Int` stands for `Uint32` and `Flt` for `Float32`. All numbers are stored in LittleEndian format. All offsets are counted in bytes.
+
+The FeatureIDs used are:
+
+```
+  waterA: 1,      // Riverbanks
+  waterB: 2,      // River
+  highwayA: 3,    // HighwayA is the biggest street, while HighwayD is a small street.
+  highwayB: 4,
+  highwayC: 5,
+  highwayD: 6,
+  natural: 7,
+  building: 8,
+  landuse: 9
+```
+
+The file format looks like this:
+
+```
+// Overall file structure
+File =
+  <Version:Int>
+  <xRefOffset:Int>
+  Boundary:
+    <minX:Flt>
+    <maxX:Flt>
+    <minY:Flt>
+    <maxY:Flt>
+  {Tile}  // For all tiles
+  <XRef>
+
+Tile =
+  <FeatureCount:Int> // Number of features stored in the tile
+  {TileFeature}      // For all features of the tile
+
+TileFeature =
+  <FeaturID:Int>     // ID of the feature, see above.
+  <EntryCount:Int>   // Number of entries for this feature
+  {TileFeatureEntry}
+
+TileFeatureEntry =
+  <NodeCount:Int>    // Number of nodes
+  {Nodes:Flt}        // All the coordinates of the nodes are stored as Floats.
+
+// The xRef contains a list of all the tiles stored in the file and offset pointers to the locations in the file.
+XRef =
+  <TileCount:Int>  // Number of tiles stored in the file.
+  {XRefTileEntry}  // For all tiles
+
+XRefTileEntry =
+  <TileZ:Int>
+  <TileX:Int>
+  <TileY:Int>
+  <TileDataOffset:Int>
+```
