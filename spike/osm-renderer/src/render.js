@@ -1,10 +1,7 @@
 // --- Actual rendering ---
 
 // Adjust this based on current zoom level.
-var LINE_WIDTH_ROOT = 1.5; 
-
-var ways = MAP_DATA.ways;
-var nodes = MAP_DATA.nodes;
+var LINE_WIDTH_ROOT = 1.5;
 
 function drawShape(shape, fillShape) {
   ctx.beginPath();
@@ -17,7 +14,7 @@ function drawShape(shape, fillShape) {
       ctx.moveTo(x, y);
     } else {
       ctx.lineTo(x, y);
-    } 
+    }
   }
 
   if (fillShape) {
@@ -29,6 +26,12 @@ function drawShape(shape, fillShape) {
 
 var wayRenderingStyle = [
   {
+    name: 'landuse', color: 'green', fill: true,
+  },
+  {
+    name: 'natural', fill: true, color: '#68B300'
+  },
+  {
     // Riverbanks
     name: 'waterA', color: '#00899E', fill: true
   },
@@ -37,29 +40,52 @@ var wayRenderingStyle = [
     name: 'waterB', color: '#00899E', lineWidth: LINE_WIDTH_ROOT * 5
   },
   {
-    name: 'landuse', color: 'green', fill: true,
-  },
-  {
-    name: 'natural', fill: true, color: '#68B300'
-  },
-  {
     name: 'building', color: 'burlywood', fill: true
   },
   {
-    name: 'highwayA', color: '#FFA200', lineWidth: LINE_WIDTH_ROOT * 10, outline: true
-  },
-  {
-    name: 'highwayB', color: '#F7EF0D', lineWidth: LINE_WIDTH_ROOT * 10, outline: true
+    name: 'highwayD', color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
   },
   {
     name: 'highwayC', color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
   },
   {
-    name: 'highwayD', color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
+    name: 'highwayB', color: '#F7EF0D', lineWidth: LINE_WIDTH_ROOT * 10, outline: true
+  },
+  {
+    name: 'highwayA', color: '#FFA200', lineWidth: LINE_WIDTH_ROOT * 10, outline: true
   }
 ];
 
-function renderTile(x, y, zoomLevel, ctx) {
+var features = wayRenderingStyle.map(function(style) { return style.name });
+
+function collectTileData(x, y, zoomLevel, mapData) {
+  var tileData = {};
+  features.forEach(function(feature) {
+    tileData[feature] = [];
+  });
+
+  while (zoomLevel != -1) {
+    var tileName = zoomLevel + '/' + x + '/' + y;
+    var data = mapData.tiles[tileName];
+
+    if (!data) {
+      break;
+    }
+
+    features.forEach(function(feature) {
+      var arr = tileData[feature];
+      arr.push.apply(arr, data[feature]);
+    });
+
+    zoomLevel -= 1;
+    x = Math.floor(x / 2);
+    y = Math.floor(y / 2);
+  }
+
+  return tileData;
+}
+
+function renderTile(x, y, zoomLevel, ctx, mapData) {
   ctx.save();
 
   // Figure out the boundary box of the tile to render.
@@ -80,9 +106,9 @@ function renderTile(x, y, zoomLevel, ctx) {
   ctx.clip();
 
   // Lookup the wayMapping from the mapData.
-  var tileData = MAP_DATA.tiles[tileName];
+  var tileData = collectTileData(x, y, zoomLevel, mapData);
 
-  render(tileData);  
+  render(tileData);
 
   ctx.restore();
 }
@@ -99,13 +125,13 @@ function render(tileData) {
     var ways = tileData[style.name];
 
     assert(ways);
-    
+
     if (style.outline) {
       for (var n = 0; n < ways.length; n++) {
         ctx.lineWidth = style.lineWidth * 1.1;
         ctx.strokeStyle = '#686523';
 
-        drawShape(ways[n], false);  
+        drawShape(ways[n], false);
       }
     }
 
@@ -118,8 +144,8 @@ function render(tileData) {
 
     var fill = style.fill;
     for (var n = 0; n < ways.length; n++) {
-      drawShape(ways[n], fill);  
-    }  
+      drawShape(ways[n], fill);
+    }
   }
 
   console.timeEnd('render-start');

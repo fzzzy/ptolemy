@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
-  <script src="munich2.osm.js"></script>
   <script src="src/core.js"></script>
   <script src="src/tiles.js"></script>
   <script src="src/render.js"></script>
+  <script src="src/binary.js"></script>
   <style>
 polyline {
   fill: none; stroke: black; stroke-width: 0.5px;
@@ -20,47 +20,60 @@ canvas {
   <canvas id="canvas" height="570" width="700"></canvas>
 
   <script type="text/javascript">
-    var CURRENT_ZOOM = 14;
+    var CURRENT_ZOOM = 15;
 
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
 
-    // --- Translate the canvas context to make drawing go at the right spot ---
-    var bounds = MAP_DATA.bounds;
+    function readAndRenderBinary() {
+      getBinaryTileFile('data.binary', function(error, mapData) {
+        if (error) {
+          throw error;
+        }
 
-    var tileMin = getTileFromMeter(bounds.minX, bounds.minY, CURRENT_ZOOM);
-    var tileMax = getTileFromMeter(bounds.maxX, bounds.maxY, CURRENT_ZOOM);
+        MAP_DATA = mapData;
 
-    var tileXCount = tileMax[0] - tileMin[0] + 1;
-    var tileYCount = tileMax[1] - tileMin[1] + 1;
+        // --- Translate the canvas context to make drawing go at the right spot ---
+        var bounds = mapData.bounds;
 
-    // --- Add margin around the map and color background ---
-    var mapMargin = 10;
+        var tileMin = getTileFromMeter(bounds.minX, bounds.minY, CURRENT_ZOOM);
+        var tileMax = getTileFromMeter(bounds.maxX, bounds.maxY, CURRENT_ZOOM);
 
-    var canvasWidth = tileXCount * TILE_SIZE;
-    var canvasHeight = tileYCount * TILE_SIZE;
+        var tileXCount = tileMax[0] - tileMin[0] + 1;
+        var tileYCount = tileMax[1] - tileMin[1] + 1;
 
-    canvas.width = canvasWidth + 2 * mapMargin;
-    canvas.height = canvasHeight + 2 * mapMargin;
-    
-    ctx.translate(mapMargin, mapMargin);
+        // --- Add margin around the map and color background ---
+        var mapMargin = 10;
 
-    // Draw the background of the map.
-    ctx.fillStyle = 'rgb(237, 230, 220)';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        var canvasWidth = tileXCount * TILE_SIZE;
+        var canvasHeight = tileYCount * TILE_SIZE;
 
-    // --- Draw the individual tiles of the map ---
+        canvas.width = canvasWidth + 2 * mapMargin;
+        canvas.height = canvasHeight + 2 * mapMargin;
 
-    for (var x = 0; x < tileXCount; x++) {
-      for (var y = 0; y < tileYCount; y++) {
-        ctx.save();
-        ctx.translate(x * TILE_SIZE, y * TILE_SIZE);
+        ctx.translate(mapMargin, mapMargin);
 
-        renderTile(x + tileMin[0], y + tileMin[1], CURRENT_ZOOM, ctx);    
+        // Draw the background of the map.
+        ctx.fillStyle = 'rgb(237, 230, 220)';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-        ctx.restore();
-      }
+        // --- Draw the individual tiles of the map ---
+
+        for (var x = 0; x < tileXCount; x++) {
+          for (var y = 0; y < tileYCount; y++) {
+            ctx.save();
+            ctx.translate(x * TILE_SIZE, y * TILE_SIZE);
+
+            renderTile(x + tileMin[0], y + tileMin[1], CURRENT_ZOOM, ctx, mapData);
+
+            ctx.restore();
+          }
+        }
+      });
     }
+
+    readAndRenderBinary();
+
   </script>
 
 </body>
