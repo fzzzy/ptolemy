@@ -19,9 +19,9 @@ var fileContent = fs.readFileSync(fileName, 'utf8');
 function getBoundingBoxFromNodes(nodes) {
   var minX = equatorExtend, minY = equatorExtend, maxX = 0, maxY = 0;
 
-  for (var i = 0; i < nodes.length; i++) {
-    var x = nodes[i][0];
-    var y = nodes[i][1];
+  for (var i = 0; i < nodes.length; i += 2) {
+    var x = nodes[i];
+    var y = nodes[i + 1];
 
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
@@ -34,17 +34,51 @@ function getBoundingBoxFromNodes(nodes) {
     minY: minY,
     maxX: maxX,
     maxY: maxY
+  };
+}
+
+function includeWay(way) {
+  var wayTagsToInclude = [
+    'highway',
+    'landuse',
+    'natural',
+    'leisure',
+    'waterway',
+    'amenity',
+    'place',
+    'barrier',
+    'surface',
+    'building'
+  ];
+
+  if ('highway' in way.tags) {
+    var excludeWays = ['unclassified', 'cycleway', 'elevator', 'crossing'];
+    return excludeWays.indexOf(way.tags.highway) == -1;
   }
+
+  for (var i = 0; i < wayTagsToInclude.length; i++) {
+    if (wayTagsToInclude[i] in way.tags) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function appendArray(a, b) {
+  a.push.apply(a, b);
 }
 
 function Way(xml, osmNodes) {
   var i;
   var xmlNodes = xml.nd;
-  var nodes = this.nodes = [];
+  var nodes = [];
   for (i = 0; i < xmlNodes.count(); i++) {
     var nodeId = parseInt(xmlNodes.at(i).attributes().ref, 10);
-    nodes.push(osmNodes[nodeId]);
+    nodes.push.apply(nodes, osmNodes[nodeId]);
   }
+
+  this.nodes = nodes;
 
   var tags = this.tags = {};
   var xmlTags = xml.tag;
@@ -58,9 +92,81 @@ function Way(xml, osmNodes) {
 
   this.boundingBox = getBoundingBoxFromNodes(nodes);
 
-  if (xml.attributes().id == '23458583') {
-    console.log('BoundingBox', JSON.stringify(this.boundingBox));
+  this.wasPackaged = false;
+}
+
+function packageMapData(wayCache, zoomLevel) {
+  var resData = {
+    waterA: [], // Riverbank, painted as filed area
+    waterB: [], // River
+    highwayA: [],
+    highwayB: [],
+    highwayC: [],
+    highwayD: []
+  };
+
+  var natural = []
+  appendArray(natural, wayCache.leisure);
+  appendArray(natural, wayCache.natural);
+
+  var building = [];
+  appendArray(building, wayCache.building);
+  appendArray(building, wayCache.place);
+  appendArray(building, wayCache.barrier);
+
+  wayCache.highway.forEach(function(highway) {
+    var type = highway.tags.highway;
+
+    switch (type) {
+      case 'motorway':
+      case 'motorway_link':
+      case 'trunk':
+      case 'trunk_link':
+        resData.highwayA.push(highway.nodes);
+        break;
+
+      case 'tertiary':
+      case 'tertiary_link':
+      case 'secondary':
+      case 'secondary_link':
+        resData.highwayB.push(highway.nodes);
+        break;
+
+      case 'living_street':
+      case 'residential':
+        resData.highwayC.push(highway.nodes);
+        break;
+
+      case 'construction':
+      case 'steps':
+      case 'footway':
+      case 'pedestrian':
+      case 'path':
+      case 'service':
+      case 'track':
+        resData.highwayD.push(highway.nodes);
+        break;
+    }
+  });
+
+  wayCache.waterway.forEach(function(waterway) {
+    var type = waterway.tags.waterway;
+    if (type === 'riverbank') {
+      resData.waterA.push(waterway.nodes);
+    } else {
+      resData.waterB.push(waterway.nodes);
+    }
+  });
+
+  function getNodes(way) {
+    return way.nodes;
   }
+
+  resData.landuse = wayCache.landuse.map(getNodes);
+  resData.natural = natural.map(getNodes);
+  resData.building = building.map(getNodes);
+
+  return resData;
 }
 
 xmlreader.read(fileContent, function(err, res) {
@@ -88,8 +194,11 @@ xmlreader.read(fileContent, function(err, res) {
 
     var way = new Way(xmlNode, nodes);
 
-    ways[attr.id] = way;
-    wayList.push(way);
+    // Only keep the ways that are relevant.
+    if (includeWay(way)) {
+      ways[attr.id] = way;
+      wayList.push(way);
+    }
   }
 
   var highwayOrder = ['motorway',
@@ -185,7 +294,7 @@ xmlreader.read(fileContent, function(err, res) {
           });
         }
 
-        tiles[zoom + '/' + x + '/' + y] = wayCache;
+        tiles[zoom + '/' + x + '/' + y] = packageMapData(wayCache, zoom);
       }
     }
   }

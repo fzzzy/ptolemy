@@ -2,21 +2,16 @@
 
 // Adjust this based on current zoom level.
 var LINE_WIDTH_ROOT = 1.5; 
-var bigRoadWidth = LINE_WIDTH_ROOT * 10;
 
 var ways = MAP_DATA.ways;
 var nodes = MAP_DATA.nodes;
 
-function drawArea(shape, fillShape) {
+function drawShape(shape, fillShape) {
   ctx.beginPath();
 
-  for (var i = 0; i < shape.length; i++) {
-    var node = shape[i];
-
-    // var x = node[0] - minlon;
-    // var y = maxlat - node[1];
-    var x = node[0];
-    var y = node[1];
+  for (var i = 0; i < shape.length; i += 2) {
+    var x = shape[i];
+    var y = shape[i + 1];
 
     if (i == 0) {
       ctx.moveTo(x, y);
@@ -32,61 +27,36 @@ function drawArea(shape, fillShape) {
   }
 }
 
-var wayMapping = [
+var wayRenderingStyle = [
   {
-    name: 'landuse',
-    fill: true,
-    fillStyle: 'green'
+    // Riverbanks
+    name: 'waterA', color: '#00899E', fill: true
   },
   {
-    name: 'waterway',
-    fill: true,
-    strokeStyle: '#00899E',
-    fillStyle: '#00899E',
-    lineWidth: LINE_WIDTH_ROOT * 5,
+    // Rivers
+    name: 'waterB', color: '#00899E', lineWidth: LINE_WIDTH_ROOT * 5
   },
   {
-    name: 'amenity',
-    fill: true,
-    fillStyle: 'rgb(244, 208, 207)'
+    name: 'landuse', color: 'green', fill: true,
   },
   {
-    name: 'natural',
-    fill: true,
-    fillStyle: '#68B300'
+    name: 'natural', fill: true, color: '#68B300'
   },
   {
-    name: 'leisure',
-    fill: true,
-    fillStyle: '#68B300'
+    name: 'building', color: 'burlywood', fill: true
   },
   {
-    name: 'surface',
-    fill: false,
-    strokeStyle: 'brown',
-    lineWidth: LINE_WIDTH_ROOT * 1
+    name: 'highwayA', color: '#FFA200', lineWidth: LINE_WIDTH_ROOT * 10, outline: true
   },
   {
-    name: 'place',
-    fill: true,
-    fillStyle: 'burlywood'
+    name: 'highwayB', color: '#F7EF0D', lineWidth: LINE_WIDTH_ROOT * 10, outline: true
   },
   {
-    name: 'building',
-    fill: true,
-    fillStyle: 'burlywood'
+    name: 'highwayC', color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
   },
   {
-    name: 'barrier',
-    fill: true,
-    fillStyle: 'burlywood'
-  },
-  {
-    name: 'highway',
-    fill: false,
-    strokeStyle: 'orange',
-    lineWidth: LINE_WIDTH_ROOT * 3
-  },
+    name: 'highwayD', color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
+  }
 ];
 
 function renderTile(x, y, zoomLevel, ctx) {
@@ -110,127 +80,47 @@ function renderTile(x, y, zoomLevel, ctx) {
   ctx.clip();
 
   // Lookup the wayMapping from the mapData.
-  var ways = MAP_DATA.tiles[tileName];
+  var tileData = MAP_DATA.tiles[tileName];
 
-  render(ways);  
+  render(tileData);  
 
   ctx.restore();
 }
 
-function render(ways) {
+function render(tileData) {
   console.time('render-start');
 
   // Rounded lines look cute :)
   ctx.lineCap = 'round';
 
-  // Draw all the ways.
-  for (var i = 0; i < wayMapping.length; i++) {
-    var wayMap = wayMapping[i];
-    var wayCache = ways[wayMap.name];
-    var fillWay = wayMap.fill;
+  // Draw all the way rendering stayles.
+  for (var i = 0; i < wayRenderingStyle.length; i++) {
+    var style = wayRenderingStyle[i];
+    var ways = tileData[style.name];
 
-    assert(wayCache);
+    assert(ways);
+    
+    if (style.outline) {
+      for (var n = 0; n < ways.length; n++) {
+        ctx.lineWidth = style.lineWidth * 1.1;
+        ctx.strokeStyle = '#686523';
 
-    ctx.lineWidth = wayMap.lineWidth;
-    ctx.strokeStyle = wayMap.strokeStyle;
-    ctx.fillStyle = wayMap.fillStyle;
-    if (wayMap.name === 'waterway') {
-      for (var n = 0; n < wayCache.length; n++) {
-        var way = wayCache[n];
-        drawArea(way.nodes, way.tags['waterway'] == 'riverbank');
-      }  
-    } else if (wayMap.name === 'highway') {
-
-      var outlines = [
-          'tertiary', 'tertiary_link', 'secondary', 'secondary_link', 
-          'living_street', 'residential'
-        ];
-
-      ctx.strokeStyle = '#686523';
-      ctx.lineWidth = bigRoadWidth * 1.1;
-
-      // First loop is about painting all the outlines.
-      for (var n = 0; n < wayCache.length; n++) {
-        var way = wayCache[n];
-        var type = way.tags.highway;
-
-        if (outlines.indexOf(type) !== -1) {
-          drawArea(way.nodes, false);  
-        }
+        drawShape(ways[n], false);  
       }
+    }
 
-      for (var n = 0; n < wayCache.length; n++) {
-        var way = wayCache[n];
-        var type = way.tags.highway;
-
-        if (!setHighwayStyle(ctx, type)) {
-          continue;
-        }
-        drawArea(way.nodes, false);
-      }  
+    ctx.lineWidth = style.lineWidth;
+    if (style.fill) {
+      ctx.fillStyle = style.color;
     } else {
-      for (var n = 0; n < wayCache.length; n++) {
-        var way = wayCache[n];
-        drawArea(way.nodes, fillWay);
-      }    
+      ctx.strokeStyle = style.color;
+    }
+
+    var fill = style.fill;
+    for (var n = 0; n < ways.length; n++) {
+      drawShape(ways[n], fill);  
     }  
   }
 
   console.timeEnd('render-start');
-}
-
-function setHighwayStyle(ctx, type) {
-  switch (type) {
-    case 'unclassified':
-    case 'cycleway':
-    case 'elevator':
-    case 'crossing':
-      // Ignore these for now.
-      return false;
-      break;
-
-    case 'motorway':
-    case 'motorway_link':
-    case 'trunk':
-    case 'trunk_link':
-      ctx.strokeStyle = '#FFA200';
-      ctx.lineWidth =  bigRoadWidth;
-      break;
-
-    case 'tertiary':
-    case 'tertiary_link':
-    case 'secondary':
-    case 'secondary_link':
-      ctx.strokeStyle = '#F7EF0D';
-      ctx.lineWidth =  bigRoadWidth;
-      break;
-
-    case 'living_street':
-    case 'residential':
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = bigRoadWidth;
-      break;
-
-    case 'construction':
-    case 'steps':
-    case 'footway':
-    case 'pedestrian':
-    case 'path':
-    case 'service':
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = bigRoadWidth * 0.3;
-      break;
-
-    case 'track':
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = bigRoadWidth * 0.3;
-      break;
-
-    default:
-      console.log('unsupportd highway type:', type);
-      ctx.strokeStyle = 'red';
-      ctx.lineWidth = bigRoadWidth;
-      break;
-  }
-  return true;
 }
