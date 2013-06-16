@@ -92,16 +92,6 @@ var offset = HEADER_OFFSET;
 
 var tileOffsets = {};
 
-// Build the header.
-var headBuffer = new Buffer(HEADER_OFFSET);
-headBuffer.writeUInt32LE(1, 0); // VERSION
-headBuffer.writeUInt32LE(offset, 4); // Offset to XRef
-
-headBuffer.writeFloatLE(bounds.minX, 8);
-headBuffer.writeFloatLE(bounds.maxX, 12);
-headBuffer.writeFloatLE(bounds.minY, 16);
-headBuffer.writeFloatLE(bounds.maxY, 20);
-
 // Map all the tiles.
 var tileBuffers = tileNames.map(function(tileName) {
   tileOffsets[tileName] = offset;
@@ -111,6 +101,16 @@ var tileBuffers = tileNames.map(function(tileName) {
   offset += buf.length;
   return buf;
 });
+
+// Build the header.
+var headBuffer = new Buffer(HEADER_OFFSET);
+headBuffer.writeUInt32LE(1, 0); // VERSION
+headBuffer.writeUInt32LE(offset, 4); // Offset to XRef
+
+headBuffer.writeFloatLE(bounds.minX, 8);
+headBuffer.writeFloatLE(bounds.maxX, 12);
+headBuffer.writeFloatLE(bounds.minY, 16);
+headBuffer.writeFloatLE(bounds.maxY, 20);
 
 // Build the xRef.
 var xRefBuffer = getXRefBuffer();
