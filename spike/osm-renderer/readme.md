@@ -84,10 +84,10 @@ File =
   <Version:Int>
   <xRefOffset:Int>
   Boundary:
-    <minX:Flt>
-    <maxX:Flt>
-    <minY:Flt>
-    <maxY:Flt>
+    <minLat:Flt>
+    <maxLat:Flt>
+    <minLon:Flt>
+    <maxLon:Flt>
   {Tile}  // For all tiles
   <XRef>
 

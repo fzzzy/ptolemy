@@ -90,10 +90,10 @@ function readTileFile(response, callback) {
 
   var tileInfos = readXRef(iarr);
   var bounds = {
-    minX: farr[2],
-    maxX: farr[3],
-    minY: farr[4],
-    maxY: farr[5]
+    minlat: farr[2],
+    maxlat: farr[3],
+    minlon: farr[4],
+    maxlon: farr[5]
   };
 
   callback(null, {

@@ -107,10 +107,10 @@ var headBuffer = new Buffer(HEADER_OFFSET);
 headBuffer.writeUInt32LE(1, 0); // VERSION
 headBuffer.writeUInt32LE(offset, 4); // Offset to XRef
 
-headBuffer.writeFloatLE(bounds.minX, 8);
-headBuffer.writeFloatLE(bounds.maxX, 12);
-headBuffer.writeFloatLE(bounds.minY, 16);
-headBuffer.writeFloatLE(bounds.maxY, 20);
+headBuffer.writeFloatLE(bounds.minlat, 8);
+headBuffer.writeFloatLE(bounds.maxlat, 12);
+headBuffer.writeFloatLE(bounds.minlon, 16);
+headBuffer.writeFloatLE(bounds.maxlon, 20);
 
 // Build the xRef.
 var xRefBuffer = getXRefBuffer();

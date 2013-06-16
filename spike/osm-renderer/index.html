@@ -8,32 +8,48 @@
   <script src="src/render.js"></script>
   <script src="external/IDBWrapper/idbstore.js"></script>
   <script src="src/binary.js"></script>
+  <link rel="stylesheet" href="external/Leaflet/dist/leaflet.css" />
+  <script src="external/Leaflet/dist/leaflet.js"></script>
   <style>
   polyline {
     fill: none; stroke: black; stroke-width: 0.5px;
   }
-  canvas {
-    border: 1px solid black;
-  }
+
+  #map { height: 100%; }
 
   </style>
+
+
 </head>
 <body>
   <select id="maps" onchange="onMapsChange()"></select>
   <button onclick="onMapsRemove()">Remove</button>
   <button onclick="onMapsRemoveAll()">Remove All</button>
   <button onclick="onMapsLoad()">Load</button><br>
-  <button onclick="onMapsZoomIn()">+</button>
-  <button onclick="onMapsZoomOut()">-</button>
-  <button onclick="onMapsMoveLeft()">Left</button>
-  <button onclick="onMapsMoveRight()">Right</button>
-  <button onclick="onMapsMoveUp()">Up</button>
-  <button onclick="onMapsMoveDown()">Down</button>
-  <div class="mapContainer">
-    <canvas id='canvas'></canvas>
-  </div>
+  <canvas id='canvas'></canvas>
+   <div id="map"></div>
 
   <script type="text/javascript">
+    var map = L.map('map').setView([51.505, -0.09], 13);
+
+    var PtolemyCanvasLayer = L.TileLayer.Canvas.extend({
+      drawTile: function (tile, tilePoint, zoomLevel) {
+        if (!this.mapData) {
+          return;
+        }
+
+        var ctx = tile.getContext('2d');
+
+        renderTile(
+          tilePoint.x, tilePoint.y, zoomLevel, ctx, this.mapData,
+          function() { }
+        );
+      }
+    });
+
+    mapLayer = new PtolemyCanvasLayer({});
+    mapLayer.addTo(map);
+
     $ = document.querySelector.bind(document);
 
     mapStore = new IDBStore({
@@ -115,9 +131,12 @@
     }
 
     MapData.prototype.getTileBounds = function(zoomLevel) {
+      var min = getMeterFromLonLat(this.bounds.minlon, this.bounds.maxlat);
+      var max = getMeterFromLonLat(this.bounds.maxlon, this.bounds.minlat);
+
       return {
-        min: getTileFromMeter(this.bounds.minX, this.bounds.minY, zoomLevel),
-        max: getTileFromMeter(this.bounds.maxX, this.bounds.maxY, zoomLevel)
+        min: getTileFromMeter(min[0], min[1], zoomLevel),
+        max: getTileFromMeter(max[0], max[1], zoomLevel)
       }
     }
 
@@ -259,6 +278,19 @@
     }
 
     function renderMapData(mapData) {
+      if (false /* USE_LEAFLET_MAP */) {
+        var b = mapData.bounds;
+        var latLon = [(b.minlat + b.maxlat)/2, (b.minlon + b.maxlon)/2];
+
+        console.log(latLon);
+
+        map.setView(latLon, 13)
+        mapLayer.mapData = mapData;
+        mapLayer.redraw();
+
+        return;
+      }
+
       var CURRENT_ZOOM = 15;
 
       var canvas = document.getElementById('canvas');
@@ -311,7 +343,7 @@
               y = 0;
             }
 
-            renderNextTile();
+            setTimeout(renderNextTile, 0);
           }
         );
       }
