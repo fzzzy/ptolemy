@@ -1,6 +1,10 @@
 var fs = require('fs');
 var xmlreader = require('xmlreader');
 
+var reader = require ("buffered-reader");
+var DataReader = reader.DataReader;
+
+
 var tiles = require('./src/tiles');
 var getMeterFromLonLat = tiles.getMeterFromLonLat;
 var equatorExtend = tiles.equatorExtend;
@@ -13,8 +17,6 @@ if (!fileName) {
   console.log('Usage `node index.js <file.osm>`');
   return;
 }
-
-var fileContent = fs.readFileSync(fileName, 'utf8');
 
 // --- "Configuration" --------------------------------------------------------
 
@@ -87,31 +89,7 @@ function appendArray(a, b) {
   a.push.apply(a, b);
 }
 
-function Way(xml, osmNodes) {
-  var i;
-  var xmlNodes = xml.nd;
-  var nodes = [];
-  for (i = 0; i < xmlNodes.count(); i++) {
-    var nodeId = parseInt(xmlNodes.at(i).attributes().ref, 10);
-    nodes.push.apply(nodes, osmNodes[nodeId]);
-  }
 
-  this.nodes = nodes;
-
-  var tags = this.tags = {};
-  var xmlTags = xml.tag;
-  // Some ways that are used in relations only have sometimes no tags.
-  if (xmlTags) {
-    for (i = 0; i < xmlTags.count(); i++) {
-      var tagAttr = xmlTags.at(i).attributes();
-      tags[tagAttr.k] = tagAttr.v;
-    }
-  }
-
-  this.boundingBox = getBoundingBoxFromNodes(nodes);
-
-  this.wasPackaged = false;
-}
 
 function packageMapData(wayCache, currentZoom, minZoom) {
   var resData = {
@@ -203,39 +181,77 @@ function packageMapData(wayCache, currentZoom, minZoom) {
   return resData;
 }
 
-xmlreader.read(fileContent, function(err, res) {
-  if (err) throw err;
+console.log('Reading and parsing xml file...')
 
-  var xmlMain = res.osm;
+var insideWayNode = false;
+var tempWay = {};
 
-  var i;
-  var attr;
-  var nodes = {};
-  var xmlNodes = xmlMain.node;
-  for (i = 0; i < xmlNodes.count(); i++) {
-    attr = xmlNodes.at(i).attributes();
-    nodes[attr.id] = getMeterFromLonLat(parseFloat(attr.lon), parseFloat(attr.lat));
-  }
+var nodes = {};
+var ways = {};
+var wayList = [];
+var bounds = {};
 
-  var ways = {};
-  var wayList = [];
+new DataReader(fileName, { encoding: "utf8" })
+  .on ('error', function (error){
+    console.log (error);
+  })
+  .on('line', function(line) {
+    if (/\s+\<bounds/.test(line)) {
+      bounds.minlat = parseFloat(line.match(/minlat="(.+?)"/)[1]);
+      bounds.minlon = parseFloat(line.match(/minlon="(.+?)"/)[1]);
+      bounds.maxlat = parseFloat(line.match(/maxlat="(.+?)"/)[1]);
+      bounds.maxlon = parseFloat(line.match(/maxlon="(.+?)"/)[1]);
+    } else if (/\s+\<node/.test(line)) {
+      var id = parseInt(line.match(/id="(.+?)"/)[1], 10);
+      var lat = parseFloat(line.match(/lat="(.+?)"/)[1]);
+      var lon = parseFloat(line.match(/lon="(.+?)"/)[1]);
 
+      nodes[id] = getMeterFromLonLat(lon, lat);
+    } else if (/\s+\<way/.test(line)) {
+      insideWayNode = true;
+      tempWay = {
+        id: parseInt(line.match(/id="(.+?)"/)[1], 10),
+        nodes: [],
+        tags: {}
+      };
+    // TODO: Handle relations here as well.
+    } else if (insideWayNode) {
+      if (/\s+\<\/way>/.test(line)) {
+        insideWayNode = false;
 
-  var xmlWays = xmlMain.way;
-  for (i = 0; i < xmlWays.count(); i++) {
-    var xmlNode = xmlWays.at(i);
-    attr = xmlNode.attributes();
+        // Only keep the ways that are relevant.
+        if (includeWay(tempWay)) {
+          tempWay.boundingBox = getBoundingBoxFromNodes(tempWay.nodes);
+          tempWay.wasPackaged = false;
+          ways[tempWay.id] = tempWay;
+          wayList.push(tempWay);
+        }
+      } else if (/\s+\<nd/.test(line)) {
+        var ref = parseInt(line.match(/ref="(.+?)"/)[1], 10);
+        tempWay.nodes.push.apply(tempWay.nodes, nodes[ref]);
+      } else if (/\s+\<tag/.test(line)) {
+        var key = line.match(/k="(.+?)"/)[1];
+        var value = line.match(/v="(.+?)"/)[1];
 
-    var way = new Way(xmlNode, nodes);
-
-    // Only keep the ways that are relevant.
-    if (includeWay(way)) {
-      ways[attr.id] = way;
-      wayList.push(way);
+        tempWay.tags[key] = value;
+      }
     }
-  }
+  })
+  .on('end', function() {
+    console.log('finished reading');
 
-  var highwayOrder = ['motorway',
+    if (typeof bounds.minlat === 'undefined') {
+      console.error('Cound not find <bounds .../> entry in file. If you have downloaded the .osm file using Overpass, please add it manually.');
+      return;
+    }
+
+    writeTileData();
+  })
+  .read();
+
+function writeTileData() {
+  var highwayOrder = [
+    'motorway',
     'motorway_link',
     'trunk',
     'trunk_link',
@@ -264,17 +280,15 @@ xmlreader.read(fileContent, function(err, res) {
     'unclassified'
   ];
 
-  // TODO: Handle relations here as well.
-
-  var bounds = xmlMain.bounds.at(0).attributes();
-
-  var min = getMeterFromLonLat(parseFloat(bounds.minlon), parseFloat(bounds.maxlat));
-  var max = getMeterFromLonLat(parseFloat(bounds.maxlon), parseFloat(bounds.minlat));
+  var min = getMeterFromLonLat(bounds.minlon, bounds.maxlat);
+  var max = getMeterFromLonLat(bounds.maxlon, bounds.minlat);
 
   var tiles = {};
 
-  var minZoom = 14;
+  var minZoom = 13;
   var maxZoom = 17;
+
+  console.log('writeTileData: ' + JSON.stringify(bounds));
 
   // For now only create data within these zoom levels.
   for (var zoom = minZoom; zoom <= maxZoom; zoom++) {
@@ -338,10 +352,10 @@ xmlreader.read(fileContent, function(err, res) {
 
   var obj = {
     bounds: {
-      minlat: parseFloat(bounds.minlat),
-      minlon: parseFloat(bounds.minlon),
-      maxlat: parseFloat(bounds.maxlat),
-      maxlon: parseFloat(bounds.maxlon),
+      minlat: bounds.minlat,
+      minlon: bounds.minlon,
+      maxlat: bounds.maxlat,
+      maxlon: bounds.maxlon,
       minX: min[0],
       minY: min[1],
       maxX: max[0],
@@ -352,5 +366,4 @@ xmlreader.read(fileContent, function(err, res) {
 
   fs.writeFileSync(fileName + '.json', JSON.stringify(obj, null, 2));
   fs.writeFileSync(fileName + '.js', 'var MAP_DATA = ' + JSON.stringify(obj, null, 2));
-});
-
+}

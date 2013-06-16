@@ -18,9 +18,29 @@ Larger area:
 wget -O muenchen2.osm "http://api.openstreetmap.org/api/0.6/map?bbox=11.56,48.13,11.59,48.145"
 ```
 
+To get the map using the faster [Overpass](http://overpass-api.de/query_form.html) library, run from the previous linked page:
+
+  (
+    way(48.13,11.56,48.145,11.59);
+  );
+  (._;>;);
+  out;
+
+This queries for all ways in the bounding box and includes the required nodes as well (this is based on [this](http://wiki.openstreetmap.org/wiki/Overpass_API/Language_Guide#All_kind_of_objects) example).
+
+A larger Munich area can be queries by running:
+
+  (
+    way(48.096,11.494,48.187,11.68);
+  );
+  (._;>;);
+  out;
+
 The area recorded is roughly
 
-  http://www.openstreetmap.org/?lat=48.14229&lon=11.54297&zoom=17&layers=M
+  http://www.openstreetmap.org/?lat=48.14229&lon=11.54297&zoom=13&layers=M
+
+## Convert the map
 
 To generate the `muenchen.osm.json` and `muenchen.osm.js` file, execute:
 
