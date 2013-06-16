@@ -6,74 +6,318 @@
   <script src="src/core.js"></script>
   <script src="src/tiles.js"></script>
   <script src="src/render.js"></script>
+  <script src="external/IDBWrapper/idbstore.js"></script>
   <script src="src/binary.js"></script>
   <style>
-polyline {
-  fill: none; stroke: black; stroke-width: 0.5px;
-}
-canvas {
-  border: 1px solid black;
-}
+  polyline {
+    fill: none; stroke: black; stroke-width: 0.5px;
+  }
+  canvas {
+    border: 1px solid black;
+  }
+
   </style>
 </head>
 <body>
-  <canvas id="canvas" height="570" width="700"></canvas>
+  <select id="maps" onchange="onMapsChange()"></select>
+  <button onclick="onMapsRemove()">Remove</button>
+  <button onclick="onMapsRemoveAll()">Remove All</button>
+  <button onclick="onMapsLoad()">Load</button><br>
+  <button onclick="onMapsZoomIn()">+</button>
+  <button onclick="onMapsZoomOut()">-</button>
+  <button onclick="onMapsMoveLeft()">Left</button>
+  <button onclick="onMapsMoveRight()">Right</button>
+  <button onclick="onMapsMoveUp()">Up</button>
+  <button onclick="onMapsMoveDown()">Down</button>
+  <div class="mapContainer">
+    <canvas id='canvas'></canvas>
+  </div>
 
   <script type="text/javascript">
-    var CURRENT_ZOOM = 15;
+    $ = document.querySelector.bind(document);
 
-    var canvas = document.getElementById('canvas');
-    var ctx = canvas.getContext('2d');
+    mapStore = new IDBStore({
+      storeName: 'maps',
+      keyPath: 'id',
+      autoIncrement: true,
+      onStoreReady: renderAvailableMaps
+    });
 
-    function readAndRenderBinary() {
-      getBinaryTileFile('data.binary', function(error, mapData) {
-        if (error) {
-          throw error;
-        }
-
-        MAP_DATA = mapData;
-
-        // --- Translate the canvas context to make drawing go at the right spot ---
-        var bounds = mapData.bounds;
-
-        var tileMin = getTileFromMeter(bounds.minX, bounds.minY, CURRENT_ZOOM);
-        var tileMax = getTileFromMeter(bounds.maxX, bounds.maxY, CURRENT_ZOOM);
-
-        var tileXCount = tileMax[0] - tileMin[0] + 1;
-        var tileYCount = tileMax[1] - tileMin[1] + 1;
-
-        // --- Add margin around the map and color background ---
-        var mapMargin = 10;
-
-        var canvasWidth = tileXCount * TILE_SIZE;
-        var canvasHeight = tileYCount * TILE_SIZE;
-
-        canvas.width = canvasWidth + 2 * mapMargin;
-        canvas.height = canvasHeight + 2 * mapMargin;
-
-        ctx.translate(mapMargin, mapMargin);
-
-        // Draw the background of the map.
-        ctx.fillStyle = 'rgb(237, 230, 220)';
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-        // --- Draw the individual tiles of the map ---
-
-        for (var x = 0; x < tileXCount; x++) {
-          for (var y = 0; y < tileYCount; y++) {
-            ctx.save();
-            ctx.translate(x * TILE_SIZE, y * TILE_SIZE);
-
-            renderTile(x + tileMin[0], y + tileMin[1], CURRENT_ZOOM, ctx, mapData);
-
-            ctx.restore();
-          }
-        }
+    function onMapsRemove() {
+      mapStore.remove(parseInt($('#maps').value, 10), function() {
+        renderAvailableMaps();
+      }, function(error) {
+        console.error(error);
       });
     }
 
-    readAndRenderBinary();
+    function onMapsRemoveAll() {
+      mapStore.clear();
+      renderAvailableMaps();
+    }
 
+    function onMapsChange() {
+      var mapsDom = $('#maps');
+      var mapID = parseInt(mapsDom.value, 10);
+
+
+      var mapData = new MapData(mapID, function(error) {
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        renderMapData(mapData)
+      })
+    }
+
+    function renderAvailableMaps() {
+      var mapsDom = $('#maps');
+      var selectedIndex = mapsDom.selectedIndex;
+
+      mapStore.getAll(function(maps) {
+        var html = '';
+        maps.forEach(function(map) {
+          html += '<option value="' + map.id + '">' + map.name + '</option>';
+        })
+        mapsDom.innerHTML = html;
+
+        // Restore the previous selected map.
+        mapsDom.selectedIndex = selectedIndex;
+      });
+    }
+
+    function MapData(id, callback) {
+      this.id = id;
+      this.tileCache = {};
+
+      var self = this;
+      mapStore.get(id, function(res) {
+        if (res === null) {
+          callback('Map with given ID not found: ' + id);
+          return;
+        }
+
+        self.bounds = res.bounds;
+        self.tileStore = new IDBStore({
+          storeName: 'tiles-' + id,
+          keyPath: 'id',
+          onStoreReady: onTileStoreReady,
+          onError: callback
+        });
+
+        function onTileStoreReady() {
+          callback();
+        }
+      }, function(error) {
+        callback(error);
+      })
+    }
+
+    MapData.prototype.getTileBounds = function(zoomLevel) {
+      return {
+        min: getTileFromMeter(this.bounds.minX, this.bounds.minY, zoomLevel),
+        max: getTileFromMeter(this.bounds.maxX, this.bounds.maxY, zoomLevel)
+      }
+    }
+
+    MapData.prototype.getTile = function(name, callback) {
+      if (this.tileCache[name]) {
+        callback(null, this.tileCache[name]);
+        return;
+      }
+
+      var self = this;
+      this.tileStore.get(name, function(entry) {
+        var tileFeatures;
+
+        if (entry) {
+          tileFeatures = readTileFeatures(entry.data);
+        } else {
+          tileFeatures = null;
+        }
+
+        self.tileCache[name] = tileFeatures;
+
+        callback(null, tileFeatures);
+      }, callback);
+    }
+
+    MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
+      var tileData = {};
+      features.forEach(function(feature) {
+        tileData[feature] = [];
+      });
+
+      var self = this;
+      function processNextZoomLevel() {
+        if (zoomLevel === -1) {
+          callback(null, tileData);
+          return;
+        }
+
+        var tileName = zoomLevel + '/' + x + '/' + y;
+        self.getTile(tileName, function(error, data) {
+          if (error) {
+            callback(error);
+            return;
+          }
+
+          if (!data) {
+            // Make the processing stop if there is no
+            zoomLevel = -1;
+          } else {
+            features.forEach(function(feature) {
+              var arr = tileData[feature];
+              arr.push.apply(arr, data[feature]);
+            });
+
+            zoomLevel -= 1;
+            x = Math.floor(x / 2);
+            y = Math.floor(y / 2);
+          }
+
+          processNextZoomLevel();
+        })
+      }
+
+      processNextZoomLevel();
+    }
+
+    MapData.load = function(url, mapName, callback) {
+      // Load the actual map file and parse the xRef as well as the bounds.
+      getBinaryTileFile(url, function(error, mapData) {
+        mapStore.put({
+          name: mapName,
+          url:  url,
+          bounds: mapData.bounds
+        }, function(newMapID) {
+          console.log('Created new map entry:', newMapID)
+
+          // Create a new store that will hold the tiles of the map.
+          tiles = new IDBStore({
+            storeName: 'tiles-' + newMapID,
+            keyPath: 'id',
+            onStoreReady: onTileStoreReady,
+            onError: callback
+          });
+
+          function onTileStoreReady() {
+            // Prepare all tiles to be inserted here before adding them to the
+            // store using one batch command.
+            var newTiles = [];
+
+            var tileInfos = mapData.tileInfos;
+            for (var i = 0; i < tileInfos.length; i++) {
+              var tile = tileInfos[i];
+              var offsetStart = tile.offset;
+              var offsetEnd;
+
+              if (i !== tileInfos.length - 1) {
+                offsetEnd = tileInfos[i + 1].offset;
+              }
+
+              var tileData = mapData.response.slice(offsetStart, offsetEnd);
+
+              newTiles.push({
+                type: "put",
+                value: {
+                  id: tile.name,
+                  data: tileData
+                }
+              });
+            }
+
+            tiles.batch(newTiles, function() {
+              callback();
+            }, function(error) {
+              callback(error);
+            });
+          }
+        }, function(error) {
+          callback(error)
+        })
+      })
+    }
+
+    function onMapsLoad() {
+      var name = prompt('Name of map:');
+      var url = prompt('URL of map data:');
+
+      if (!name || !url) {
+        return;
+      }
+
+      MapData.load(url, name, function(error) {
+        if (error) {
+          alert('Failed to load map: ' + error);
+        } else {
+          alert('Map loaded and available offline.');
+          renderAvailableMaps();
+        }
+      })
+    }
+
+    function renderMapData(mapData) {
+      var CURRENT_ZOOM = 15;
+
+      var canvas = document.getElementById('canvas');
+      var ctx = canvas.getContext('2d');
+
+      // --- Translate the canvas context to make drawing go at the right spot ---
+      var tileBounds = mapData.getTileBounds(CURRENT_ZOOM);
+
+      var tileMin = tileBounds.min;
+      var tileMax = tileBounds.max;
+
+      var tileXCount = tileMax[0] - tileMin[0] + 1;
+      var tileYCount = tileMax[1] - tileMin[1] + 1;
+
+      // --- Add margin around the map and color background ---
+      var mapMargin = 10;
+
+      var canvasWidth = tileXCount * TILE_SIZE;
+      var canvasHeight = tileYCount * TILE_SIZE;
+
+      canvas.width = canvasWidth + 2 * mapMargin;
+      canvas.height = canvasHeight + 2 * mapMargin;
+
+      ctx.translate(mapMargin, mapMargin);
+
+      // Draw the background of the map.
+      ctx.fillStyle = 'rgb(237, 230, 220)';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      // --- Draw the individual tiles of the map ---
+
+      var x = 0;
+      var y = 0;
+      function renderNextTile() {
+        if (x == tileXCount) {
+          return;
+        }
+
+        ctx.save();
+        ctx.translate(x * TILE_SIZE, y * TILE_SIZE);
+
+        renderTile(
+          x + tileMin[0], y + tileMin[1], CURRENT_ZOOM, ctx, mapData,
+          function() {
+            ctx.restore();
+
+            y ++;
+            if (y == tileYCount) {
+              x ++;
+              y = 0;
+            }
+
+            renderNextTile();
+          }
+        );
+      }
+
+      renderNextTile();
+    }
   </script>
 
 </body>

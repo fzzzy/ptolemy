@@ -46,9 +46,11 @@ function readXRef(iarr) {
   return tiles;
 }
 
-function readTile(tileInfo, iarr, farr) {
-  console.log('readTile', tileInfo.name);
-  var offset = tileInfo.offset / 4;
+function readTileFeatures(binaryArray) {
+  var farr = new Float32Array(binaryArray);
+  var iarr = new Uint32Array(binaryArray);
+
+  var offset = 0;
   var featureCount = iarr[offset];
   offset += 1;
 
@@ -60,7 +62,6 @@ function readTile(tileInfo, iarr, farr) {
     offset += 2;
 
     var type = getFeatureTypeFromID(featureID);
-    console.log('  read feature:', type, 'entryCount:', entryCount);
 
     var entries = [];
     for (var n = 0; n < entryCount; n++) {
@@ -95,18 +96,12 @@ function readTileFile(response, callback) {
     maxY: farr[5]
   };
 
-  var tiles = {};
-
-  tileInfos.forEach(function(tileInfo) {
-    tiles[tileInfo.name] = readTile(tileInfo, iarr, farr);
-  });
-
   callback(null, {
     bounds: bounds,
-    tiles: tiles
+    tileInfos: tileInfos,
+    response: response
   });
 }
-
 
 function getBinaryTileFile(fileName, callback) {
   var xhr = new XMLHttpRequest();

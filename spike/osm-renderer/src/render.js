@@ -3,7 +3,7 @@
 // Adjust this based on current zoom level.
 var LINE_WIDTH_ROOT = 1.5;
 
-function drawShape(shape, fillShape) {
+function drawShape(ctx, shape, fillShape) {
   ctx.beginPath();
 
   for (var i = 0; i < shape.length; i += 2) {
@@ -58,34 +58,7 @@ var wayRenderingStyle = [
 
 var features = wayRenderingStyle.map(function(style) { return style.name });
 
-function collectTileData(x, y, zoomLevel, mapData) {
-  var tileData = {};
-  features.forEach(function(feature) {
-    tileData[feature] = [];
-  });
-
-  while (zoomLevel != -1) {
-    var tileName = zoomLevel + '/' + x + '/' + y;
-    var data = mapData.tiles[tileName];
-
-    if (!data) {
-      break;
-    }
-
-    features.forEach(function(feature) {
-      var arr = tileData[feature];
-      arr.push.apply(arr, data[feature]);
-    });
-
-    zoomLevel -= 1;
-    x = Math.floor(x / 2);
-    y = Math.floor(y / 2);
-  }
-
-  return tileData;
-}
-
-function renderTile(x, y, zoomLevel, ctx, mapData) {
+function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
   ctx.save();
 
   // Figure out the boundary box of the tile to render.
@@ -106,14 +79,21 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
   ctx.clip();
 
   // Lookup the wayMapping from the mapData.
-  var tileData = collectTileData(x, y, zoomLevel, mapData);
+  mapData.collectTileData(x, y, zoomLevel, function(error, tileData) {
+    if (error) {
+      callback(error);
+      ctx.restore();
+      return;
+    }
 
-  render(tileData);
+    render(ctx, tileData);
+    ctx.restore();
 
-  ctx.restore();
+    callback(null);
+  });
 }
 
-function render(tileData) {
+function render(ctx, tileData) {
   console.time('render-start');
 
   // Rounded lines look cute :)
@@ -131,7 +111,7 @@ function render(tileData) {
         ctx.lineWidth = style.lineWidth * 1.1;
         ctx.strokeStyle = '#686523';
 
-        drawShape(ways[n], false);
+        drawShape(ctx, ways[n], false);
       }
     }
 
@@ -144,7 +124,7 @@ function render(tileData) {
 
     var fill = style.fill;
     for (var n = 0; n < ways.length; n++) {
-      drawShape(ways[n], fill);
+      drawShape(ctx, ways[n], fill);
     }
   }
 
