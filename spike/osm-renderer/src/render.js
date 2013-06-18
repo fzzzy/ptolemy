@@ -70,19 +70,18 @@ function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
 
   var tileName = zoomLevel + '/' + x + '/' + y;
   console.log('Render tile:', tileName);
-  console.log(tileBB);
+  // console.log(tileBB);
 
   // Clip to the boundingBox of the tile on the canvas to prevent drawing outside
   // of the current tile.
-
   ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
   ctx.clip();
 
   // Lookup the wayMapping from the mapData.
   mapData.collectTileData(x, y, zoomLevel, function(error, tileData) {
     if (error) {
-      callback(error);
       ctx.restore();
+      callback(error);
       return;
     }
 
