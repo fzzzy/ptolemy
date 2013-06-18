@@ -3,36 +3,53 @@
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
+  <script src="external/IDBWrapper/idbstore.js"></script>
+  <link rel="stylesheet" href="external/Leaflet/dist/leaflet.css" />
+  <script src="external/Leaflet/dist/leaflet.js"></script>
+
   <script src="src/core.js"></script>
   <script src="src/tiles.js"></script>
   <script src="src/render.js"></script>
   <script src="src/binary.js"></script>
   <script src="src/mapData.js"></script>
-  <script src="external/IDBWrapper/idbstore.js"></script>
-  <link rel="stylesheet" href="external/Leaflet/dist/leaflet.css" />
-  <script src="external/Leaflet/dist/leaflet.js"></script>
+  <script src="src/ui.js"></script>
+
   <style>
-  polyline {
-    fill: none; stroke: black; stroke-width: 0.5px;
-  }
+    polyline {
+      fill: none; stroke: black; stroke-width: 0.5px;
+    }
 
-  #map { height: 100%; }
-
+    #leafletMap { height: 400px; }
   </style>
 
 
 </head>
 <body>
-  <select id="maps" onchange="onMapsChange()"></select>
+  <button onclick="onMapsLoad()">Load new Map</button>
+  Offline available maps:<select id="maps" onchange="onMapsChange()"></select>
   <button onclick="onMapsRemove()">Remove</button>
-  <button onclick="onMapsRemoveAll()">Remove All</button>
-  <button onclick="onMapsLoad()">Load</button><br>
+  <button onclick="onMapsRemoveAll()">Remove All</button><br>
+
   <canvas id='canvas'></canvas>
-   <div id="map"></div>
+  <div id="leafletMap"></div>
 
   <script type="text/javascript">
-    var map = L.map('map').setView([51.505, -0.09], 13);
+    $ = document.querySelector.bind(document);
 
+    // --- Global switches ---
+
+    // Use this switch to change between using a Leaflet map or render the
+    // map to a big canvas.
+    var USE_LEAFLET_MAP = false;
+
+    // Use this zoom as default zoom when rendering the map
+    var MAP_DEFAULT_ZOOM = 15;
+
+    // --- Setup a Leaflet map ---
+    var map = L.map('leafletMap').setView([51.505, -0.09], 13);
+
+    // A Leaflet Layer that works hand in hand with the map rendered provided
+    // by ptolemy.
     var PtolemyCanvasLayer = L.TileLayer.Canvas.extend({
       drawTile: function (tile, tilePoint, zoomLevel) {
         if (!this.mapData) {
@@ -51,133 +68,9 @@
     mapLayer = new PtolemyCanvasLayer({});
     mapLayer.addTo(map);
 
-    $ = document.querySelector.bind(document);
+    // --- Init offline stored maps ---
 
-    mapStore = new IDBStore({
-      storeName: 'maps',
-      keyPath: 'id',
-      autoIncrement: true,
-      onStoreReady: renderAvailableMaps
-    });
-
-    function onMapsRemove() {
-      mapStore.remove(parseInt($('#maps').value, 10), function() {
-        renderAvailableMaps();
-      }, function(error) {
-        console.error(error);
-      });
-    }
-
-    function onMapsRemoveAll() {
-      mapStore.clear();
-      renderAvailableMaps();
-    }
-
-    function onMapsChange() {
-      var mapsDom = $('#maps');
-      var mapID = parseInt(mapsDom.value, 10);
-
-
-      var mapData = new MapData(mapID, function(error) {
-        if (error) {
-          console.error(error);
-          return;
-        }
-
-        renderMapData(mapData)
-      })
-    }
-
-    function renderAvailableMaps() {
-      var mapsDom = $('#maps');
-      var selectedIndex = mapsDom.selectedIndex;
-
-      mapStore.getAll(function(maps) {
-        var html = '';
-        maps.forEach(function(map) {
-          html += '<option value="' + map.id + '">' + map.name + '</option>';
-        })
-        mapsDom.innerHTML = html;
-
-        // Restore the previous selected map.
-        mapsDom.selectedIndex = selectedIndex;
-      });
-    }
-
-    function renderMapData(mapData) {
-      if (false /* USE_LEAFLET_MAP */) {
-        var b = mapData.bounds;
-        var latLon = [(b.minlat + b.maxlat)/2, (b.minlon + b.maxlon)/2];
-
-        console.log(latLon);
-
-        map.setView(latLon, 13)
-        mapLayer.mapData = mapData;
-        mapLayer.redraw();
-
-        return;
-      }
-
-      var CURRENT_ZOOM = 15;
-
-      var canvas = document.getElementById('canvas');
-      var ctx = canvas.getContext('2d');
-
-      // --- Translate the canvas context to make drawing go at the right spot ---
-      var tileBounds = mapData.getTileBounds(CURRENT_ZOOM);
-
-      var tileMin = tileBounds.min;
-      var tileMax = tileBounds.max;
-
-      var tileXCount = tileMax[0] - tileMin[0] + 1;
-      var tileYCount = tileMax[1] - tileMin[1] + 1;
-
-      // --- Add margin around the map and color background ---
-      var mapMargin = 10;
-
-      var canvasWidth = tileXCount * TILE_SIZE;
-      var canvasHeight = tileYCount * TILE_SIZE;
-
-      canvas.width = canvasWidth + 2 * mapMargin;
-      canvas.height = canvasHeight + 2 * mapMargin;
-
-      ctx.translate(mapMargin, mapMargin);
-
-      // Draw the background of the map.
-      ctx.fillStyle = 'rgb(237, 230, 220)';
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      // --- Draw the individual tiles of the map ---
-
-      var x = 0;
-      var y = 0;
-      function renderNextTile() {
-        if (x == tileXCount) {
-          return;
-        }
-
-        ctx.save();
-        ctx.translate(x * TILE_SIZE, y * TILE_SIZE);
-
-        renderTile(
-          x + tileMin[0], y + tileMin[1], CURRENT_ZOOM, ctx, mapData,
-          function() {
-            ctx.restore();
-
-            y ++;
-            if (y == tileYCount) {
-              x ++;
-              y = 0;
-            }
-
-            // setTimeout(renderNextTile, 0);
-            renderNextTile()
-          }
-        );
-      }
-
-      renderNextTile();
-    }
+    initMapStore(renderAvailableMaps);
   </script>
 
 </body>

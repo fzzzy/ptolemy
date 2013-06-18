@@ -85,14 +85,14 @@ function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
       return;
     }
 
-    render(ctx, tileData);
+    renderTileData(ctx, tileData);
     ctx.restore();
 
     callback(null);
   });
 }
 
-function render(ctx, tileData) {
+function renderTileData(ctx, tileData) {
   console.time('render-start');
 
   // Rounded lines look cute :)
@@ -128,4 +128,77 @@ function render(ctx, tileData) {
   }
 
   console.timeEnd('render-start');
+}
+
+function renderMapData(mapData) {
+  if (USE_LEAFLET_MAP) {
+    var b = mapData.bounds;
+    var latLon = [(b.minlat + b.maxlat)/2, (b.minlon + b.maxlon)/2];
+
+    console.log(latLon);
+
+    map.setView(latLon, MAP_DEFAULT_ZOOM);
+    mapLayer.mapData = mapData;
+    mapLayer.redraw();
+
+    return;
+  }
+
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+
+  // --- Translate the canvas context to make drawing go at the right spot ---
+  var tileBounds = mapData.getTileBounds(MAP_DEFAULT_ZOOM);
+
+  var tileMin = tileBounds.min;
+  var tileMax = tileBounds.max;
+
+  var tileXCount = tileMax[0] - tileMin[0] + 1;
+  var tileYCount = tileMax[1] - tileMin[1] + 1;
+
+  // --- Add margin around the map and color background ---
+  var mapMargin = 10;
+
+  var canvasWidth = tileXCount * TILE_SIZE;
+  var canvasHeight = tileYCount * TILE_SIZE;
+
+  canvas.width = canvasWidth + 2 * mapMargin;
+  canvas.height = canvasHeight + 2 * mapMargin;
+
+  ctx.translate(mapMargin, mapMargin);
+
+  // Draw the background of the map.
+  ctx.fillStyle = 'rgb(237, 230, 220)';
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  // --- Draw the individual tiles of the map ---
+
+  var x = 0;
+  var y = 0;
+  function renderNextTile() {
+    if (x == tileXCount) {
+      return;
+    }
+
+    ctx.save();
+    ctx.translate(x * TILE_SIZE, y * TILE_SIZE);
+
+    renderTile(
+      x + tileMin[0], y + tileMin[1], MAP_DEFAULT_ZOOM, ctx, mapData,
+      function callback() {
+        ctx.restore();
+
+        y ++;
+        if (y == tileYCount) {
+          x ++;
+          y = 0;
+        }
+
+        // setTimeout(renderNextTile, 0);
+        renderNextTile();
+      }
+    );
+  }
+
+  renderNextTile();
 }

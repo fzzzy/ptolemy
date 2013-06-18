@@ -1,3 +1,14 @@
+var mapStore = null;
+
+function initMapStore(callback) {
+  mapStore = new IDBStore({
+    storeName: 'maps',
+    keyPath: 'id',
+    autoIncrement: true,
+    onStoreReady: callback
+  });
+}
+
 function MapData(id, callback) {
   this.id = id;
   this.tileCache = {};
@@ -151,23 +162,5 @@ MapData.load = function(url, mapName, callback) {
     }, function(error) {
       callback(error)
     })
-  })
-}
-
-function onMapsLoad() {
-  var name = prompt('Name of map:');
-  var url = prompt('URL of map data:');
-
-  if (!name || !url) {
-    return;
-  }
-
-  MapData.load(url, name, function(error) {
-    if (error) {
-      alert('Failed to load map: ' + error);
-    } else {
-      alert('Map loaded and available offline.');
-      renderAvailableMaps();
-    }
   })
 }
