@@ -1,0 +1,22 @@
+{
+  "name": "Ptolemy",
+  "version": "0.0.1",
+  "description": "JavaScript library to render OpenStreetMap data in the browser",
+  "devDependencies": {
+    "buffered-reader": "1.0.1",
+    "connect": "2.11.0"
+  },
+  "main": "dist/leaflet-src.js",
+  "scripts": {
+    "test": "jake test",
+    "prepublish": "jake build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com:fzzzy/ptolemy.git"
+  },
+  "keywords": [
+    "renderer",
+    "map"
+  ]
+}

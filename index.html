@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
-  <script src="build/idbstore.js"></script>
-  <link rel="stylesheet" href="build/leaflet.css" />
-  <script src="build/leaflet.js"></script>
+  <script src="external/IDBWrapper/idbstore.js"></script>
+  <link rel="stylesheet" href="external/Leaflet/dist/leaflet.css" />
+  <script src="external/Leaflet/dist/leaflet.js"></script>
 
   <script src="src/core.js"></script>
   <script src="src/tiles.js"></script>
@@ -30,6 +30,9 @@
   </button><br>
   <button onclick="onRenderMap()">
     Render map data
+  </button>
+  <button onclick="onToggleLeafletMap()">
+    Toggle LeafletMap
   </button><br>
 
   <canvas id='canvas'></canvas>
@@ -73,6 +76,7 @@
     // --- Init offline stored maps ---
 
     initMapStore(function() {
+      onToggleLeafletMap();
       // Do something here for on-maps-ready load event :)
     });
   </script>

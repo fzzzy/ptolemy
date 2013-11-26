@@ -6,7 +6,6 @@ function onMapsLoad() {
       alert('Failed to load map "map.binary": ' + error);
     } else {
       alert('Map loaded and available offline.');
-      renderAvailableMaps();
     }
   })
 }
@@ -27,4 +26,15 @@ function onRenderMap() {
       });
     }
   });
+}
+
+function updateMaps() {
+  $('#leafletMap').style.display = USE_LEAFLET_MAP ? 'block' : 'none';
+  $('#canvas').style.display = !USE_LEAFLET_MAP ? 'block' : 'none';
+}
+
+function onToggleLeafletMap() {
+  USE_LEAFLET_MAP = !USE_LEAFLET_MAP;
+  updateMaps();
+  onRenderMap();
 }
