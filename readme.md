@@ -1,4 +1,6 @@
-# Minimal-Readme
+# Ptolemy
+
+Rendering OpenStreetMap data (offline) in the browser.
 
 ## About
 
