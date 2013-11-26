@@ -1,4 +1,0 @@
-Ptolemy
-=======
-
-Vector map prototype

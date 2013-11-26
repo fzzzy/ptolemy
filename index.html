@@ -3,153 +3,75 @@
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
-  <script type="text/javascript" src="src/core.js"></script>
-  <script type="text/javascript" src="src/util.js"></script>
-  <script type="text/javascript" src="src/worker.js"></script>
-  <script type="text/javascript">
-window.onload = function() {
-  var USE_CANVAS = false;
-  var USE_STYLE_HACK_TIMING = false;
+  <script src="external/IDBWrapper/idbstore.js"></script>
+  <link rel="stylesheet" href="external/Leaflet/dist/leaflet.css" />
+  <script src="external/Leaflet/dist/leaflet.js"></script>
 
-  // requestAnimationFrame polyfill
-  var requestAnimationFrame = (function(){
-    return  window.requestAnimationFrame       ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame    ||
-            function( callback ){
-              window.setTimeout(callback, 1000 / 60);
-            };
-  })();
+  <script src="src/core.js"></script>
+  <script src="src/tiles.js"></script>
+  <script src="src/render.js"></script>
+  <script src="src/binary.js"></script>
+  <script src="src/mapData.js"></script>
+  <script src="src/ui.js"></script>
 
-  if (USE_CANVAS) {
-    var svg = document.getElementById('svg');
-    svg.parentNode.removeChild(svg);
-
-    function render_tile(data, promise) {
-      var canvas = document.getElementById('canvas').getContext('2d');
-      canvas.lineWidth = 0.5;
-      if (data.type === 'FeatureCollection') {
-        for (var i = 0; i < data.features.length; i++) {
-          var el = data.features[i];
-          if (el.geometry.coordinates) {
-            var first = true;
-            for (var j = 0; j < el.geometry.coordinates.length; j++) {
-              var coords = el.geometry.coordinates[j];
-              if (first) {
-                first = false;
-                canvas.beginPath();
-                canvas.moveTo(coords[0], coords[1]);
-              } else {
-                canvas.lineTo(coords[0], coords[1]);
-              }
-            }
-            canvas.stroke();
-          }
-        }
-      }
-
-      var prepared = new Date();
-      document.getElementById('prepare').textContent = (
-        new prepared.valueOf() - start.valueOf());
-
-      if (USE_STYLE_HACK_TIMING) {
-        var touched = document.body.style.backgroundColor;
-        document.getElementById('drawn').textContent = (
-          new Date().valueOf() - prepared.valueOf());
-      } else {
-        requestAnimationFrame(function() {
-          document.getElementById('drawn').textContent = (
-            new Date().valueOf() - prepared.valueOf());
-        });
-      }
-    }
-  } else {
-    var canvas = document.getElementById('canvas');
-    canvas.parentNode.removeChild(canvas);
-
-    function render_tile(data, promise) {
-      var svg = document.getElementById('svg');
-      if (data.type === 'FeatureCollection') {
-        var parent = svg.parentNode;
-        svg.parentNode.removeChild(svg);
-        for (var i = 0; i < data.features.length; i++) {
-          var el = data.features[i];
-          if (el.geometry.coordinates) {
-            var result = el.geometry.coordinates.map(function(coord) {
-              return coord.join(",");
-            });
-            //console.log(max_x, max_y, min_x, min_y);
-            var poly = document.createElementNS(svgns, "polyline");
-            poly.setAttribute("points", result.join(" "));
-            svg.appendChild(poly);
-            //console.log(result.join(" "));
-          }
-        }
-        var prepared = new Date();
-        document.getElementById('prepare').textContent = (
-          prepared.valueOf() - start.valueOf());
-        parent.appendChild(svg);
-        if (USE_STYLE_HACK_TIMING) {
-          var touched = document.body.style.backgroundColor;
-          document.getElementById('drawn').textContent = (
-            new Date().valueOf() - prepared.valueOf());
-        } else {
-          requestAnimationFrame(function() {
-            document.getElementById('drawn').textContent = (
-              new Date().valueOf() - prepared.valueOf());
-          });
-        }
-      }
-    }
-  }
-
-
-  PTOLEMY.enableWorker = location.hash.indexOf('disableWorker') === -1;
-  PTOLEMY.workerSrc = 'src/worker_loader.js';
-  PTOLEMY.boot();
-  var send = PTOLEMY.handler.send.bind(PTOLEMY.handler);
-  var svgns = "http://www.w3.org/2000/svg";
-  var start = null;
-  var messaging = new Date();
-  send('start', 'worker_main.js', function(data, promise) {
-    send('tile', null, function(data, promise) {
-      start = new Date();
-      document.getElementById("messaging").textContent = (
-        start.valueOf() - messaging.valueOf());
-//      console.log("start", start.toString());
-      render_tile(data, promise);
-    });
-  });
-}
-  </script>
   <style>
-svg {
-  border: 1px solid black; height: 570px; width: 700px;
-}
+    polyline {
+      fill: none; stroke: black; stroke-width: 0.5px;
+    }
 
-polyline {
-  fill: none; stroke: black; stroke-width: 0.5px;
-}
-
-canvas {
-  border: 1px solid black; height: 570px; width: 700px
-}
+    #leafletMap { height: 400px; }
   </style>
+
+
 </head>
 <body>
-  <span>
-    Messaging time <span id="messaging"></span> ms 
-  </span>
-  <span>
-    Prepare time <span id="prepare"></span> ms
-  </span>
-  <span>
-    Drawing time <span id="drawn"></span> ms
-  </span>
-  <svg id="svg" xmlns="http://www.w3.org/2000/svg" version="1.1">
-    <polyline points="0,0 1,1" />
-  </svg>
-  <canvas id="canvas" height="570" width="700">
-  </canvas>
+  <button onclick="onMapsLoad()">Load new Map</button>
+  Offline available maps:<select id="maps" onchange="onMapsChange()"></select>
+  <button onclick="onMapsRemove()">Remove</button>
+  <button onclick="onMapsRemoveAll()">Remove All</button><br>
+
+  <canvas id='canvas'></canvas>
+  <div id="leafletMap"></div>
+
+  <script type="text/javascript">
+    $ = document.querySelector.bind(document);
+
+    // --- Global switches ---
+
+    // Use this switch to change between using a Leaflet map or render the
+    // map to a big canvas.
+    var USE_LEAFLET_MAP = false;
+
+    // Use this zoom as default zoom when rendering the map
+    var MAP_DEFAULT_ZOOM = 15;
+
+    // --- Setup a Leaflet map ---
+    var map = L.map('leafletMap').setView([51.505, -0.09], 13);
+
+    // A Leaflet Layer that works hand in hand with the map rendered provided
+    // by ptolemy.
+    var PtolemyCanvasLayer = L.TileLayer.Canvas.extend({
+      drawTile: function (tile, tilePoint, zoomLevel) {
+        if (!this.mapData) {
+          return;
+        }
+
+        var ctx = tile.getContext('2d');
+
+        renderTile(
+          tilePoint.x, tilePoint.y, zoomLevel, ctx, this.mapData,
+          function() { }
+        );
+      }
+    });
+
+    mapLayer = new PtolemyCanvasLayer({});
+    mapLayer.addTo(map);
+
+    // --- Init offline stored maps ---
+
+    initMapStore(renderAvailableMaps);
+  </script>
+
 </body>
 </html>
