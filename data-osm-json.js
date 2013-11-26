@@ -1,3 +1,5 @@
+// Converts an .osm file into a .json format.
+
 var fs = require('fs');
 var xmlreader = require('xmlreader');
 

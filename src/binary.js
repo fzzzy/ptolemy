@@ -112,5 +112,13 @@ function getBinaryTileFile(fileName, callback) {
     readTileFile(this.response, callback);
   };
 
+  xhr.onerror = function(e) {
+    callback(e);
+  }
+
+  xhr.onabort = function(e) {
+    callback(e);
+  }
+
   xhr.send();
 }

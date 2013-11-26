@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
-  <script src="external/IDBWrapper/idbstore.js"></script>
-  <link rel="stylesheet" href="external/Leaflet/dist/leaflet.css" />
-  <script src="external/Leaflet/dist/leaflet.js"></script>
+  <script src="build/idbstore.js"></script>
+  <link rel="stylesheet" href="build/leaflet.css" />
+  <script src="build/leaflet.js"></script>
 
   <script src="src/core.js"></script>
   <script src="src/tiles.js"></script>
@@ -25,10 +25,12 @@
 
 </head>
 <body>
-  <button onclick="onMapsLoad()">Load new Map</button>
-  Offline available maps:<select id="maps" onchange="onMapsChange()"></select>
-  <button onclick="onMapsRemove()">Remove</button>
-  <button onclick="onMapsRemoveAll()">Remove All</button><br>
+  <button onclick="onMapsLoad()">
+    Load Map (and make it offline-available)
+  </button><br>
+  <button onclick="onRenderMap()">
+    Render map data
+  </button><br>
 
   <canvas id='canvas'></canvas>
   <div id="leafletMap"></div>
@@ -40,7 +42,7 @@
 
     // Use this switch to change between using a Leaflet map or render the
     // map to a big canvas.
-    var USE_LEAFLET_MAP = false;
+    var USE_LEAFLET_MAP = true;
 
     // Use this zoom as default zoom when rendering the map
     var MAP_DEFAULT_ZOOM = 15;
@@ -70,7 +72,9 @@
 
     // --- Init offline stored maps ---
 
-    initMapStore(renderAvailableMaps);
+    initMapStore(function() {
+      // Do something here for on-maps-ready load event :)
+    });
   </script>
 
 </body>

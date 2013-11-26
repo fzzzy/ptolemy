@@ -1,3 +1,6 @@
+// Converts an .osm.json file into a .osm.json.binary format.
+// The output file has the ending map.binary
+
 var fs = require('fs');
 
 var fileName = process.argv[2];
@@ -121,5 +124,5 @@ tileBuffers.push(xRefBuffer);
 
 var totalBuffer = Buffer.concat(tileBuffers);
 
-fs.writeFileSync(fileName + '.binary', totalBuffer, 'binary');
+fs.writeFileSync('map.binary', totalBuffer, 'binary');
 

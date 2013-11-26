@@ -112,6 +112,9 @@ MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
 MapData.load = function(url, mapName, callback) {
   // Load the actual map file and parse the xRef as well as the bounds.
   getBinaryTileFile(url, function(error, mapData) {
+    if (error) {
+      return callback(error);
+    }
     mapStore.put({
       name: mapName,
       url:  url,
