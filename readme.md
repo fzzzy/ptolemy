@@ -4,11 +4,13 @@ Rendering OpenStreetMap data (offline) in the browser.
 
 ## About
 
-This implements the minimal functionality to render some "raw" OpenStreetMap data (using the `osm` format) to a canvas by converting the `osm` data to `json` and then render it using a simple renderer (don't expect anything awesome at this point ;) ).
+This implements the minimal functionality to render some "raw" OpenStreetMap data (using the `osm` format) to a canvas by converting the `osm` data to `json` (using `data-osm-json.js`), then from from `osm.json` to a `binary` format (see blow). The map binary data is stored in the browser's IndexDB for offline usage. This data is then used to render the map in the browser.
 
 ## Usage
 
-The file `muenchen.osm` was created using:
+### Get the raw OpenStreetMap data
+
+Let's create the `binary` file first. Let's grab a piece from Munich:
 
 ```
 wget -O muenchen.osm "http://api.openstreetmap.org/api/0.6/map?bbox=11.54,48.14,11.543,48.145"
@@ -20,7 +22,7 @@ Larger area:
 wget -O muenchen2.osm "http://api.openstreetmap.org/api/0.6/map?bbox=11.56,48.13,11.59,48.145"
 ```
 
-To get the map using the faster [Overpass](http://overpass-api.de/query_form.html) library, run from the previous linked page:
+To get the map using the faster Overpass API, run from [this page](http://overpass-api.de/query_form.html):
 
   (
     way(48.13,11.56,48.145,11.59);
@@ -42,23 +44,37 @@ The area recorded is roughly
 
   http://www.openstreetmap.org/?lat=48.14229&lon=11.54297&zoom=13&layers=M
 
-## Convert the map
+### Convert OpenStreetMap -> BinaryFormat
 
-To generate the `muenchen.osm.json` and `muenchen.osm.js` file, execute:
-
-```
-node index.js muenchen.osm
-```
-
-The `xxx.osm.json` file is then converted into a binary file using
+To generate the `map.binary` file, execute install the `node` dependencies by running:
 
 ```
-node binary-converter.js muenchen.osm.json
+$ npm install
 ```
 
-which emits `muenchen.osm.json.binary`.
+Next, genrate the `osm.json` file:
 
-The index.html implements a simple rendererd that reads the binary format and then emits it.
+```
+$ node data-osm-json.js muenchen.osm
+```
+
+The new generated `xxx.osm.json` file is then converted into a `binary` file using
+
+```
+node data-json-binary.js muenchen.osm.json
+```
+
+which emits `map.binary`. Note that the example viewer assumes the file to be names `map.binary`.
+
+### Loading and rendering the map in the browser
+
+Some browsers (e.g. Googel Chrome) require to serve the data using a local development server. A local server can be started by running
+
+```
+$ node local-server.js
+```
+
+This will serve the files at [localhost:8888](http://localhost:8888). Point your browser to that URL and click the "Load Map" button on the top. Once you got a confirmation, that the map is loaded (might take a few seconds on mobile devices), you can render the map by clicking on "Render map data". To get an "interactive" map, you can use the [Leaflet](http://leafletjs.com/) library by clicking on the "ToggleLeafletMap" button.
 
 ## Binary Format
 
