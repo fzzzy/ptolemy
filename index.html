@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html manifest="appcache.mf">
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
+  <!-- Dependencies to other libraries -->
   <script src="external/idbstore.js"></script>
   <link rel="stylesheet" href="external/leaflet.css" />
   <script src="external/leaflet.js"></script>
 
+  <!-- Ptolemy sources -->
   <script src="src/core.js"></script>
   <script src="src/tiles.js"></script>
   <script src="src/render.js"></script>
@@ -21,8 +23,6 @@
 
     #leafletMap { height: 400px; }
   </style>
-
-
 </head>
 <body>
   <button onclick="onMapsLoad()">

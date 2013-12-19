@@ -1,0 +1,19 @@
+CACHE MANIFEST
+# 2013-12-19:v1
+
+# Explicitly cached 'master entries'.
+CACHE:
+index.html
+external/idbstore.js
+external/leaflet.css
+external/leaflet.js
+src/core.js
+src/tiles.js
+src/render.js
+src/binary.js
+src/mapData.js
+src/ui.js
+
+# Resources that require the user to be online.
+NETWORK:
+*
