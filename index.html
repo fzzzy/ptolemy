@@ -51,6 +51,9 @@
       <p>
         Simply speaking, the map data (e.g. for downtown Munich) is downloaded from the OpenStreetMap servers, optimized (include only relevant features), tilded and packaged into a small binary file format. This binary format is then stored by Ptolemy in IndexDB. When rendering the parts of the map, Ptolemy fetches the necessary data from IndexDB and draws them on a HTML5 canvas layer provided by Leaflet.
       </p>
+      <p>
+        More details and how to convert the raw OpenStreetMap data into the format used by Ptolemy is <a href="https://github.com/fzzzy/ptolemy/tree/gh-pages#ptolemy">described in the project's readme you can find on GitHub</a>.
+      </p>
       <legend>What's the motivation behind the project?</legend>
       <p>
         Maps are an important part for many applications. As WebApps (roughly: applications that are only made of Web/HTML5 technologies) become more important and these apps should also work offline, it becomes the question how to render maps offline in WebApps. As far as the authors can tell, there is no solution available at this point, which is why Ptolemy was started as a prototype project.
