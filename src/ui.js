@@ -5,7 +5,7 @@ function onMapsLoad() {
     if (error) {
       alert('Failed to load map "map.binary": ' + error);
     } else {
-      alert('Map loaded and available offline.');
+      // alert('Map loaded and available offline.');
     }
   })
 }
