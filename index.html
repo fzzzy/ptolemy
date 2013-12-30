@@ -7,6 +7,7 @@
   <script src="external/idbstore.js"></script>
   <link rel="stylesheet" href="external/leaflet.css" />
   <script src="external/leaflet.js"></script>
+  <link rel="stylesheet" href="external/bootstrap.min.css" />
 
   <!-- Ptolemy sources -->
   <script src="src/core.js"></script>
@@ -37,6 +38,9 @@
 
   <canvas id='canvas'></canvas>
   <div id="leafletMap"></div>
+  <p>
+    © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors
+  </p>
 
   <script type="text/javascript">
     $ = document.querySelector.bind(document);
@@ -70,7 +74,9 @@
       }
     });
 
-    mapLayer = new PtolemyCanvasLayer({});
+    mapLayer = new PtolemyCanvasLayer({
+      attribution: "© <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+    });
     mapLayer.addTo(map);
 
     // --- Init offline stored maps ---
