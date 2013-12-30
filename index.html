@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html manifest="appcache.mf">
+<!-- <html> -->
 <head>
   <meta charset="utf-8">
   <title>Ptolemy</title>
@@ -26,22 +27,40 @@
   </style>
 </head>
 <body>
-  <button onclick="onMapsLoad()">
-    Load Map (and make it offline-available)
-  </button><br>
-  <button onclick="onRenderMap()">
-    Render map data
-  </button>
-  <button onclick="onToggleLeafletMap()">
-    Toggle LeafletMap
-  </button><br>
+  <div class="row">
+    <div class="span8 offset2">
+      <a href="https://github.com/fzzzy/ptolemy"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+      <h1>Ptolemy</h1>
+      <p>
+        Ptolemy makes it possible to <strong>render maps offline in the browser</strong> without downloading bitmap tiles and only with the help of HTML5. As the map is rendered in the browser directly, the required map data to is small in size which allows to to store the map for offline use in the browser's offline storage (IndexDB). The project is <strong>open source</strong> and hosted on <a href="https://github.com/fzzzy/ptolemy">GitHub</a>.
+      </p>
+      <p>
+        <strong>Please note:</strong> Ptolemy is a prototype, is in an early development stage and is still misses many features that one would expect from a map rendered (e.g. street labels).
+      </p>
 
-  <canvas id='canvas'></canvas>
-  <div id="leafletMap"></div>
-  <p>
-    © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors
-  </p>
+      <legend>Demo</legend>
+      <p>
+        Below you find downtown Munich rendered using Ptolemy. <a href="http://leafletjs.com/">Leaflet</a> is used to zoom/navigate on the page. <strong>The map is already made offline available - so feel free to cut the internet connection and the map will still render ;).</strong> The underlaying map data is provided by the OpenStreetMap project - © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors.
+      </p>
+      <p>
+        <canvas id='canvas'></canvas>
+        <div id="leafletMap"></div>
+      </p>
 
+      <legend>How does this work?</legend>
+      <p>
+        Simply speaking, the map data (e.g. for downtown Munich) is downloaded from the OpenStreetMap servers, optimized (include only relevant features), tilded and packaged into a small binary file format. This binary format is then stored by Ptolemy in IndexDB. When rendering the parts of the map, Ptolemy fetches the necessary data from IndexDB and draws them on a HTML5 canvas layer provided by Leaflet.
+      </p>
+      <legend>What's the motivation behind the project?</legend>
+      <p>
+        Maps are an important part for many applications. As WebApps (roughly: applications that are only made of Web/HTML5 technologies) become more important and these apps should also work offline, it becomes the question how to render maps offline in WebApps. As far as the authors can tell, there is no solution available at this point, which is why Ptolemy was started as a prototype project.
+      </p>
+      <legend>Who made this?</legend>
+      <p>
+        The Ptolemy project was initially developed by <a href="https://twitter.com/donovanpreston">@donovanpreston</a> and <a href="https://twitter.com/jviereck">@jviereck</a>.
+      </p>
+    </div>
+  </div>
   <script type="text/javascript">
     $ = document.querySelector.bind(document);
 
@@ -82,7 +101,7 @@
     // --- Init offline stored maps ---
 
     initMapStore(function() {
-      onToggleLeafletMap();
+      onToggleLeafletMap(USE_LEAFLET_MAP);
       // Do something here for on-maps-ready load event :)
     });
   </script>

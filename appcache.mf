@@ -1,12 +1,13 @@
 CACHE MANIFEST
-# 2013-12-19:v1
+# 2013-12-30:v5
 
 # Explicitly cached 'master entries'.
 CACHE:
 index.html
 external/idbstore.js
-external/leaflet.css
 external/leaflet.js
+external/leaflet.css
+external/bootstrap.min.css
 src/core.js
 src/tiles.js
 src/render.js
