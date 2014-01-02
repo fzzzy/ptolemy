@@ -1,8 +1,10 @@
 # Ptolemy
 
-Rendering OpenStreetMap data (offline) in the browser.
+Ptolemy makes it possible to render maps offline in the browser without downloading bitmap tiles and only with the help of HTML5. As the map is rendered in the browser directly, the required map data is small in size which allows to to store the map for offline use in the browser's offline storage (IndexDB). The project is open source and hosted on GitHub.
 
-## About
+Please note: Ptolemy is a prototype, is in an early development stage and is still misses many features that one would expect from a map rendered (e.g. street labels). 
+
+## About the code
 
 This implements the minimal functionality to render some "raw" OpenStreetMap data (using the `osm` format) to a canvas by converting the `osm` data to `json` (using `data-osm-json.js`), then from from `osm.json` to a `binary` format (see blow). The map binary data is stored in the browser's IndexDB for offline usage. This data is then used to render the map in the browser.
 
