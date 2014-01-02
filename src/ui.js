@@ -5,7 +5,7 @@ function onMapsLoad() {
     if (error) {
       alert('Failed to load map "map.binary": ' + error);
     } else {
-      // alert('Map loaded and available offline.');
+      onRenderMap();
     }
   })
 }
@@ -13,9 +13,12 @@ function onMapsLoad() {
 function onRenderMap() {
   mapStore.getAll(function(maps) {
     if (maps.length == 0) {
-      // alert('No map loaded yet.');
+      // Load the map if it is not available yet.
       onMapsLoad();
     } else {
+      // Hide the loading indicator.
+      document.getElementById('loading').style.display = 'none';
+
       var mapID = maps[0].id;
       var mapData = new MapData(mapID, function(error) {
         if (error) {
@@ -27,15 +30,4 @@ function onRenderMap() {
       });
     }
   });
-}
-
-function updateMaps() {
-  $('#leafletMap').style.display = USE_LEAFLET_MAP ? 'block' : 'none';
-  $('#canvas').style.display = !USE_LEAFLET_MAP ? 'block' : 'none';
-}
-
-function onToggleLeafletMap(value) {
-  USE_LEAFLET_MAP = value === undefined ? !USE_LEAFLET_MAP : value;
-  updateMaps();
-  onRenderMap();
 }

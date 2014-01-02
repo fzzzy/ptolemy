@@ -43,7 +43,9 @@
         Below you find downtown Munich rendered using Ptolemy. <a href="http://leafletjs.com/">Leaflet</a> is used to zoom/navigate on the page. <strong>The map is already made offline available - so feel free to cut the internet connection and the map will still render ;).</strong> The underlaying map data is provided by the OpenStreetMap project - © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors.
       </p>
       <p>
-        <canvas id='canvas'></canvas>
+        <div id="loading">
+          <strong>Loading map data...</strong><img src="external/loader.gif">
+        </div>
         <div id="leafletMap"></div>
       </p>
 
@@ -68,10 +70,6 @@
     $ = document.querySelector.bind(document);
 
     // --- Global switches ---
-
-    // Use this switch to change between using a Leaflet map or render the
-    // map to a big canvas.
-    var USE_LEAFLET_MAP = true;
 
     // Use this zoom as default zoom when rendering the map
     var MAP_DEFAULT_ZOOM = 15;
@@ -103,10 +101,7 @@
 
     // --- Init offline stored maps ---
 
-    initMapStore(function() {
-      onToggleLeafletMap(USE_LEAFLET_MAP);
-      // Do something here for on-maps-ready load event :)
-    });
+    initMapStore(onRenderMap);
   </script>
 
 </body>

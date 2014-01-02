@@ -131,19 +131,17 @@ function renderTileData(ctx, tileData) {
 }
 
 function renderMapData(mapData) {
-  if (USE_LEAFLET_MAP) {
-    var b = mapData.bounds;
-    var latLon = [(b.minlat + b.maxlat)/2, (b.minlon + b.maxlon)/2];
+  var b = mapData.bounds;
+  var latLon = [(b.minlat + b.maxlat)/2, (b.minlon + b.maxlon)/2];
 
-    console.log(latLon);
+  console.log(latLon);
 
-    map.setView(latLon, MAP_DEFAULT_ZOOM);
-    mapLayer.mapData = mapData;
-    mapLayer.redraw();
+  map.setView(latLon, MAP_DEFAULT_ZOOM);
+  mapLayer.mapData = mapData;
+  mapLayer.redraw();
+}
 
-    return;
-  }
-
+function renderMapDataOnCanvas() {
   var canvas = document.getElementById('canvas');
   var ctx = canvas.getContext('2d');
 
