@@ -135,3 +135,7 @@ XRefTileEntry =
   <TileY:Int>
   <TileDataOffset:Int>
 ```
+
+# License
+
+Mozilla Public License Version 2.0
