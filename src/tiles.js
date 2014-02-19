@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 // --- Constants & helpers to do meter -> pixel conversion ---
 
 // The 20037508.342789241555641 corresponds roughly to 1/2 of the equator
