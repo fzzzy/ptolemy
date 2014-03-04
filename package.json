@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "JavaScript library to render OpenStreetMap data in the browser",
   "dependencies": {
-    "xmlreader": "0.2.3",
-    "connect": "2.13.0"
+    "connect": "2.13.0",
+    "osm-read": "0.3.2"
   },
   "devDependencies": {
     "buffered-reader": "1.0.1",
