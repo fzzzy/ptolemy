@@ -139,3 +139,6 @@ XRefTileEntry =
 # License
 
 Mozilla Public License Version 2.0
+
+Icon from http://commons.wikimedia.org/wiki/File:Globe.svg licensed to the public domain.
+

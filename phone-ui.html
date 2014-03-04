@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ptolemy</title>
+  <!-- Dependencies to other libraries -->
+  <script src="external/idbstore.js"></script>
+  <link rel="stylesheet" href="external/leaflet.css" />
+  <script src="external/leaflet.js"></script>
+  <link rel="stylesheet" href="external/bootstrap.min.css" />
+
+  <!-- Ptolemy sources -->
+  <script src="src/core.js"></script>
+  <script src="src/tiles.js"></script>
+  <script src="src/render.js"></script>
+  <script src="src/binary.js"></script>
+  <script src="src/mapData.js"></script>
+  <script src="src/ui.js"></script>
+
+  <style>
+    polyline {
+      fill: none; stroke: black; stroke-width: 0.5px;
+    }
+
+    #leafletMap {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      bottom: 0px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading"></div>
+<div id="leafletMap"></div>
+
+<script type="text/javascript">
+  // Use this zoom as default zoom when rendering the map
+  var MAP_DEFAULT_ZOOM = 15;
+
+  // --- Setup a Leaflet map ---
+  var map = L.map('leafletMap').setView([51.505, -0.09], 13);
+
+  // A Leaflet Layer that works hand in hand with the map rendered provided
+  // by ptolemy.
+  var PtolemyCanvasLayer = L.TileLayer.Canvas.extend({
+    drawTile: function (tile, tilePoint, zoomLevel) {
+      if (!this.mapData) {
+        return;
+      }
+
+      var ctx = tile.getContext('2d');
+
+      renderTile(
+        tilePoint.x, tilePoint.y, zoomLevel, ctx, this.mapData,
+        function() { }
+      );
+    }
+  });
+
+  mapLayer = new PtolemyCanvasLayer({
+    attribution: "© <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+  });
+  mapLayer.addTo(map);
+
+  // --- Init offline stored maps ---
+
+  initMapStore(onRenderMap);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+    "name": "Ptolemy",
+    "description": "Ptolemy, Offline Vector Maps",
+    "launch_path": "/phone-ui.html",
+    "icons": {
+        "128": "/icon.png"
+    },
+    "developer": {
+        "name": "Mozilla",
+        "url": "http://mozilla.org/"
+    }
+}
