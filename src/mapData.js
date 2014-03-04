@@ -20,13 +20,13 @@ function initMapStore(callback) {
 function clearMapStore(callback) {
   if (mapStore) {
     mapStore.getAll(function(maps) {
-      if (maps.length != 0) {
+      if (maps.length !== 0) {
         var mapID = maps[0].id;
 
         var tileStore = new IDBStore({
           storeName: 'tiles-' + mapID,
           keyPath: 'id',
-          onStoreReady: () => {
+          onStoreReady: function () {
             tileStore.clear();
             mapStore.clear();
             callback();
