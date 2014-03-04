@@ -47,6 +47,7 @@
           <strong>Loading map data...</strong><img src="external/loader.gif">
         </div>
         <div id="leafletMap"></div>
+        <button id="reloadIDB">Reload Map</button>
       </p>
 
       <legend>How does this work?</legend>
@@ -102,6 +103,14 @@
     // --- Init offline stored maps ---
 
     initMapStore(onRenderMap);
+
+    window.onload = function() {
+      $("#reloadIDB").onclick = function() {
+        clearMapStore(function() {
+          initMapStore(onRenderMap);
+        });
+      }
+    }
   </script>
 
 </body>
