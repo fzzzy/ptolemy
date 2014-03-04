@@ -151,7 +151,7 @@ MapData.load = function(url, mapName, callback) {
       console.log('Created new map entry:', newMapID);
 
       // Create a new store that will hold the tiles of the map.
-      tiles = new IDBStore({
+      var tiles = new IDBStore({
         storeName: 'tiles-' + newMapID,
         keyPath: 'id',
         onStoreReady: onTileStoreReady,
