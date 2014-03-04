@@ -5,12 +5,6 @@
 // Converts an .osm file into a .json format.
 
 var fs = require('fs');
-var xmlreader = require('xmlreader');
-
-var reader = require ("buffered-reader");
-var DataReader = reader.DataReader;
-
-
 var tiles = require('./src/tiles');
 var getMeterFromLonLat = tiles.getMeterFromLonLat;
 var equatorExtend = tiles.equatorExtend;
@@ -189,71 +183,62 @@ function packageMapData(wayCache, currentZoom, minZoom) {
 
 console.log('Reading and parsing xml file...')
 
-var insideWayNode = false;
-var tempWay = {};
-
 var nodes = {};
 var ways = {};
 var wayList = [];
 var bounds = {};
 
-new DataReader(fileName, { encoding: "utf8" })
-  .on ('error', function (error){
-    console.log (error);
-  })
-  .on('line', function(line) {
-    if (/\s+\<bounds/.test(line)) {
-      bounds.minlat = parseFloat(line.match(/minlat="(.+?)"/)[1]);
-      bounds.minlon = parseFloat(line.match(/minlon="(.+?)"/)[1]);
-      bounds.maxlat = parseFloat(line.match(/maxlat="(.+?)"/)[1]);
-      bounds.maxlon = parseFloat(line.match(/maxlon="(.+?)"/)[1]);
-    } else if (/\s+\<node/.test(line)) {
-      var id = parseInt(line.match(/id="(.+?)"/)[1], 10);
-      var lat = parseFloat(line.match(/lat="(.+?)"/)[1]);
-      var lon = parseFloat(line.match(/lon="(.+?)"/)[1]);
+// osm-read requires the file extension be xml or pbf
+var renamed = false;
+var newName;
+if (/\.\S+$/.test(fileName)) {
+  renamed = true;
+  newName = fileName + ".xml";
+  fs.renameSync(fileName, newName);
+  fileName = newName;
+}
 
-      nodes[id] = getMeterFromLonLat(lon, lat);
-    } else if (/\s+\<way/.test(line)) {
-      insideWayNode = true;
-      tempWay = {
-        id: parseInt(line.match(/id="(.+?)"/)[1], 10),
-        nodes: [],
-        tags: {}
-      };
-    // TODO: Handle relations here as well.
-    } else if (insideWayNode) {
-      if (/\s+\<\/way>/.test(line)) {
-        insideWayNode = false;
-
-        // Only keep the ways that are relevant.
-        if (includeWay(tempWay)) {
-          tempWay.boundingBox = getBoundingBoxFromNodes(tempWay.nodes);
-          tempWay.wasPackaged = false;
-          ways[tempWay.id] = tempWay;
-          wayList.push(tempWay);
-        }
-      } else if (/\s+\<nd/.test(line)) {
-        var ref = parseInt(line.match(/ref="(.+?)"/)[1], 10);
-        tempWay.nodes.push.apply(tempWay.nodes, nodes[ref]);
-      } else if (/\s+\<tag/.test(line)) {
-        var key = line.match(/k="(.+?)"/)[1];
-        var value = line.match(/v="(.+?)"/)[1];
-
-        tempWay.tags[key] = value;
-      }
-    }
-  })
-  .on('end', function() {
+require('osm-read').parse({
+  filePath: fileName,
+  error: console.log.bind(console),
+  endDocument: function () {
     console.log('finished reading');
 
-    if (typeof bounds.minlat === 'undefined') {
+    if ("minlat" in bounds) {
+      writeTileData();
+    } else {
       console.error('Cound not find <bounds .../> entry in file. If you have downloaded the .osm file using Overpass, please add it manually.');
-      return;
     }
+  },
+  bounds: function (_bounds) {
+    bounds = _bounds;
+  },
+  node: function (node) {
+    nodes[node.id] = getMeterFromLonLat(node.lon, node.lat);
+  },
+  way: function (way) {
+    var tempWay = tempWay = {
+      id: parseFloat(way.id, 10),
+      nodes: [],
+      tags: way.tags,
+    };
+    way.nodeRefs.forEach(function (nodeRef) {
+      nodes[nodeRef].forEach(function (coord) {
+        tempWay.nodes.push(coord);
+      });
+    });
+    if (includeWay(tempWay)) {
+      tempWay.boundingBox = getBoundingBoxFromNodes(tempWay.nodes);
+      tempWay.wasPackaged = false;
+      ways[tempWay.id] = tempWay;
+      wayList.push(tempWay);
+    }
+  },
+});
 
-    writeTileData();
-  })
-  .read();
+if (renamed) {
+  fs.renameSync(fileName, fileName.replace(/\.xml$/, ""));
+}
 
 function writeTileData() {
   var highwayOrder = [
