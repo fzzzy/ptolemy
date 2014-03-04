@@ -1,6 +1,10 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* globals IDBStore, getMeterFromLonLat, getTileFromMeter, readTileFeatures,
+    features, getBinaryTileFile, tiles:true */
+
+'use strict';
 
 var mapStore = null;
 
@@ -57,7 +61,7 @@ function MapData(id, callback) {
     }
   }, function(error) {
     callback(error);
-  })
+  });
 }
 
 MapData.prototype.getTileBounds = function(zoomLevel) {
@@ -67,8 +71,8 @@ MapData.prototype.getTileBounds = function(zoomLevel) {
   return {
     min: getTileFromMeter(min[0], min[1], zoomLevel),
     max: getTileFromMeter(max[0], max[1], zoomLevel)
-  }
-}
+  };
+};
 
 MapData.prototype.getTile = function(name, callback) {
   if (this.tileCache[name]) {
@@ -90,7 +94,7 @@ MapData.prototype.getTile = function(name, callback) {
 
     callback(null, tileFeatures);
   }, callback);
-}
+};
 
 MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
   var tileData = {};
@@ -127,11 +131,11 @@ MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
       }
 
       processNextZoomLevel();
-    })
+    });
   }
 
   processNextZoomLevel();
-}
+};
 
 MapData.load = function(url, mapName, callback) {
   // Load the actual map file and parse the xRef as well as the bounds.
@@ -144,7 +148,7 @@ MapData.load = function(url, mapName, callback) {
       url:  url,
       bounds: mapData.bounds
     }, function(newMapID) {
-      console.log('Created new map entry:', newMapID)
+      console.log('Created new map entry:', newMapID);
 
       // Create a new store that will hold the tiles of the map.
       tiles = new IDBStore({
@@ -172,7 +176,7 @@ MapData.load = function(url, mapName, callback) {
           var tileData = mapData.response.slice(offsetStart, offsetEnd);
 
           newTiles.push({
-            type: "put",
+            type: 'put',
             value: {
               id: tile.name,
               data: tileData
@@ -187,7 +191,7 @@ MapData.load = function(url, mapName, callback) {
         });
       }
     }, function(error) {
-      callback(error)
-    })
-  })
-}
+      callback(error);
+    });
+  });
+};

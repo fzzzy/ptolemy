@@ -1,6 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* globals getTileBoundingBoxInMeter, getPixelPerMeter, assert, map,
+    MAP_DEFAULT_ZOOM, mapLayer, mapData, TILE_SIZE */
+'use strict';
 
 // --- Actual rendering ---
 
@@ -14,7 +17,7 @@ function drawShape(ctx, shape, fillShape) {
     var x = shape[i];
     var y = shape[i + 1];
 
-    if (i == 0) {
+    if (i === 0) {
       ctx.moveTo(x, y);
     } else {
       ctx.lineTo(x, y);
@@ -53,14 +56,22 @@ var wayRenderingStyle = [
     name: 'highwayC', color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
   },
   {
-    name: 'highwayB', color: '#F7EF0D', lineWidth: LINE_WIDTH_ROOT * 10, outline: true
+    name: 'highwayB',
+    color: '#F7EF0D',
+    lineWidth: LINE_WIDTH_ROOT * 10,
+    outline: true
   },
   {
-    name: 'highwayA', color: '#FFA200', lineWidth: LINE_WIDTH_ROOT * 10, outline: true
+    name: 'highwayA',
+    color: '#FFA200',
+    lineWidth: LINE_WIDTH_ROOT * 10,
+    outline: true
   }
 ];
 
-var features = wayRenderingStyle.map(function(style) { return style.name });
+var features = wayRenderingStyle.map(function(style) {
+  return style.name;
+});
 
 function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
   ctx.save();
@@ -76,8 +87,8 @@ function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
   console.log('Render tile:', tileName);
   // console.log(tileBB);
 
-  // Clip to the boundingBox of the tile on the canvas to prevent drawing outside
-  // of the current tile.
+  // Clip to the boundingBox of the tile on the canvas to prevent
+  // drawing outside of the current tile.
   ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
   ctx.clip();
 
@@ -126,8 +137,8 @@ function renderTileData(ctx, tileData) {
     }
 
     var fill = style.fill;
-    for (var n = 0; n < ways.length; n++) {
-      drawShape(ctx, ways[n], fill);
+    for (var j = 0; j < ways.length; j++) {
+      drawShape(ctx, ways[j], fill);
     }
   }
 

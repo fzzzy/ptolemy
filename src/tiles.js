@@ -1,6 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* globals exports */
+
+'use strict';
 
 // --- Constants & helpers to do meter -> pixel conversion ---
 
@@ -11,8 +14,6 @@ var equatorExtend = equatorExtendHalf * 2;
 var degreeToMeter = equatorExtendHalf / 180;
 
 var TILE_SIZE = 256; // 256 x 256 is the default tile size.
-
-'use strict';
 
 function getNumberOfTiles(zoomLevel) {
   return Math.pow(2, zoomLevel);

@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+'use strict';
+
 // Reads a binary tileFile.
 
 var featureMap = {
@@ -14,7 +16,7 @@ var featureMap = {
   natural: 7,
   building: 8,
   landuse: 9
-}
+};
 
 function getFeatureTypeFromID(id) {
   var features = Object.keys(featureMap);
@@ -24,7 +26,7 @@ function getFeatureTypeFromID(id) {
     }
   }
   // Should always find the feature from the ID.
-  assert(false);
+  throw new Error('Should not get here');
 }
 
 function readXRef(iarr) {
@@ -118,11 +120,11 @@ function getBinaryTileFile(fileName, callback) {
 
   xhr.onerror = function(e) {
     callback(e);
-  }
+  };
 
   xhr.onabort = function(e) {
     callback(e);
-  }
+  };
 
   xhr.send();
 }

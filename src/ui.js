@@ -1,6 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* globals MapData, mapStore, renderMapData */
+
+'use strict';
 
 function onMapsLoad() {
   // For now, just use a dummy map name.
@@ -11,12 +14,12 @@ function onMapsLoad() {
     } else {
       onRenderMap();
     }
-  })
+  });
 }
 
 function onRenderMap() {
   mapStore.getAll(function(maps) {
-    if (maps.length == 0) {
+    if (maps.length === 0) {
       // Load the map if it is not available yet.
       onMapsLoad();
     } else {
@@ -30,7 +33,7 @@ function onRenderMap() {
           return;
         }
 
-        renderMapData(mapData)
+        renderMapData(mapData);
       });
     }
   });
