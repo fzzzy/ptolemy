@@ -41,7 +41,12 @@
   var MAP_DEFAULT_ZOOM = 15;
 
   // --- Setup a Leaflet map ---
-  var map = L.map('leafletMap').setView([51.505, -0.09], 13);
+  var map = L.map('leafletMap', {
+    center: [51.505, -0.09],
+    zoom: MAP_DEFAULT_ZOOM,
+    minZoom: 13,
+    maxZoom: 18
+  });
 
   // A Leaflet Layer that works hand in hand with the map rendered provided
   // by ptolemy.
