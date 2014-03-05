@@ -6,17 +6,17 @@
 
 // Reads a binary tileFile.
 
-const WATERA_TYPE = 1;
-const WATERB_TYPE = 2;
-const HIGHWAYA_TYPE = 3;
-const HIGHWAYB_TYPE = 4;
-const HIGHWAYC_TYPE = 5;
-const HIGHWAYD_TYPE = 6;
-const NATURAL_TYPE = 7;
-const BUILDING_TYPE = 8;
-const LANDUSE_TYPE = 9;
+var WATERA_TYPE = 1;
+var WATERB_TYPE = 2;
+var HIGHWAYA_TYPE = 3;
+var HIGHWAYB_TYPE = 4;
+var HIGHWAYC_TYPE = 5;
+var HIGHWAYD_TYPE = 6;
+var NATURAL_TYPE = 7;
+var BUILDING_TYPE = 8;
+var LANDUSE_TYPE = 9;
 
-const featureMap = {
+var featureMap = {
   waterA: WATERA_TYPE,
   waterB: WATERB_TYPE,
   highwayA: HIGHWAYA_TYPE,
