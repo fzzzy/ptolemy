@@ -5,7 +5,7 @@
 var port = 8888;
 
 var connect = require('connect');
-var fetch = require('./fetch');
+var fetchOsmData = require('./fetch');
 var app = connect()
           .use(connect.static(__dirname))
           .use(connect.query())
@@ -15,11 +15,11 @@ var app = connect()
   var w = query.w;
   var n = query.n;
   var e = query.e;
-  if (s && w && n && e) {
-    fetch(s, w, n, e).pipe(res);
+  if ([s, w, n, e].every(isFinite)) {
+    fetchOsmData(s, w, n, e).pipe(res);
   } else {
     res.statusCode = 404;
-    res.end();
+    res.end("expected numeric querystring parameters s, w, n, & e");
   }
 });
 
