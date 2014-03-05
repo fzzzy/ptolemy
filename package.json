@@ -4,7 +4,8 @@
   "description": "JavaScript library to render OpenStreetMap data in the browser",
   "dependencies": {
     "connect": "2.13.0",
-    "osm-read": "0.3.2"
+    "osm-read": "0.3.2",
+    "request": "2.34.0"
   },
   "devDependencies": {
     "buffered-reader": "1.0.1",
