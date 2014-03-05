@@ -33,36 +33,36 @@ function drawShape(ctx, shape, fillShape) {
 
 var wayRenderingStyle = [
   {
-    name: 'landuse', color: 'green', fill: true,
+    name: LANDUSE_TYPE, color: 'green', fill: true,
   },
   {
-    name: 'natural', fill: true, color: '#68B300'
+    name: NATURAL_TYPE, fill: true, color: '#68B300'
   },
   {
     // Riverbanks
-    name: 'waterA', color: '#00899E', fill: true
+    name: WATERA_TYPE, color: '#00899E', fill: true
   },
   {
     // Rivers
-    name: 'waterB', color: '#00899E', lineWidth: LINE_WIDTH_ROOT * 5
+    name: WATERB_TYPE, color: '#00899E', lineWidth: LINE_WIDTH_ROOT * 5
   },
   {
-    name: 'building', color: 'burlywood', fill: true
+    name: BUILDING_TYPE, color: 'burlywood', fill: true
   },
   {
-    name: 'highwayD', color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
+    name: HIGHWAYD_TYPE, color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
   },
   {
-    name: 'highwayC', color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
+    name: HIGHWAYC_TYPE, color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
   },
   {
-    name: 'highwayB',
+    name: HIGHWAYB_TYPE,
     color: '#F7EF0D',
     lineWidth: LINE_WIDTH_ROOT * 10,
     outline: true
   },
   {
-    name: 'highwayA',
+    name: HIGHWAYA_TYPE,
     color: '#FFA200',
     lineWidth: LINE_WIDTH_ROOT * 10,
     outline: true
