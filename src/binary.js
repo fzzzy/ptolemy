@@ -6,16 +6,26 @@
 
 // Reads a binary tileFile.
 
+var WATERA_TYPE = 1;
+var WATERB_TYPE = 2;
+var HIGHWAYA_TYPE = 3;
+var HIGHWAYB_TYPE = 4;
+var HIGHWAYC_TYPE = 5;
+var HIGHWAYD_TYPE = 6;
+var NATURAL_TYPE = 7;
+var BUILDING_TYPE = 8;
+var LANDUSE_TYPE = 9;
+
 var featureMap = {
-  waterA: 1,
-  waterB: 2,
-  highwayA: 3,
-  highwayB: 4,
-  highwayC: 5,
-  highwayD: 6,
-  natural: 7,
-  building: 8,
-  landuse: 9
+  waterA: WATERA_TYPE,
+  waterB: WATERB_TYPE,
+  highwayA: HIGHWAYA_TYPE,
+  highwayB: HIGHWAYB_TYPE,
+  highwayC: HIGHWAYC_TYPE,
+  highwayD: HIGHWAYD_TYPE,
+  natural: NATURAL_TYPE,
+  building: BUILDING_TYPE,
+  landuse: LANDUSE_TYPE
 };
 
 function getFeatureTypeFromID(id) {
@@ -67,8 +77,6 @@ function readTileFeatures(binaryArray) {
     var entryCount = iarr[offset + 1];
     offset += 2;
 
-    var type = getFeatureTypeFromID(featureID);
-
     var entries = [];
     for (var n = 0; n < entryCount; n++) {
       var nodeSize = iarr[offset];
@@ -82,7 +90,7 @@ function readTileFeatures(binaryArray) {
       entries.push(nodes);
     }
 
-    features[type] = entries;
+    features[featureID] = entries;
   }
 
   return features;
