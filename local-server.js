@@ -5,7 +5,7 @@
 var port = 8888;
 
 var connect = require('connect');
-var fetchOsmData = require('./fetch');
+var fetchOsmData = require('./fetch_osm_data');
 var app = connect()
           .use(connect.static(__dirname))
           .use(connect.query())
