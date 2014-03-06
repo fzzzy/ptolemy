@@ -108,12 +108,6 @@ function renderData(ctx, data) {
           offset += 2;
         }
 
-        if (style.outline) {
-          ctx.lineWidth = style.lineWidth * 1.1;
-          ctx.strokeStyle = style.outline;
-          ctx.stroke();
-        }
-
         ctx.lineWidth = style.lineWidth;
         if (style.fill) {
           ctx.fillStyle = style.color;
