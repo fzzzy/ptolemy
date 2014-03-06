@@ -10,24 +10,6 @@
 // Adjust this based on current zoom level.
 var LINE_WIDTH_ROOT = 1.5;
 
-function drawShape(ctx, shape, fillShape) {
-  ctx.beginPath();
-
-  ctx.moveTo(shape[0], shape[1]);
-
-  for (var i = 2; i < shape.length; i += 2) {
-    var x = shape[i];
-    var y = shape[i + 1];
-    ctx.lineTo(x, y);
-  }
-
-  if (fillShape) {
-    ctx.fill();
-  } else {
-    ctx.stroke();
-  }
-}
-
 var wayRenderingStyle = {
   1: {
     // Riverbanks
@@ -40,12 +22,12 @@ var wayRenderingStyle = {
   3: {
     color: '#FFA200',
     lineWidth: LINE_WIDTH_ROOT * 10,
-    outline: true
+    outline: '#FE9A2E'
   },
   4: {
     color: '#F7EF0D',
     lineWidth: LINE_WIDTH_ROOT * 10,
-    outline: true
+    outline: '#FE9A2E'
   },
   5: {
     color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
@@ -60,7 +42,7 @@ var wayRenderingStyle = {
     color: 'burlywood', fill: true
   },
   9: {
-    color: 'green', fill: true,
+    color: 'lightgray', fill: true,
   },
 };
 
@@ -88,6 +70,8 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
       return;
     }
 
+    console.log("Render tile: " + x + ", " + y + ", " + zoomLevel);
+
     renderTileData(ctx, tileData);
     ctx.restore();
   });
@@ -113,27 +97,32 @@ function renderData(ctx, data) {
       var nodeSize = iarr[offset];
       offset += 1;
 
-      var nodes = [];
-      for (var k = 0; k < nodeSize; k++) {
-        nodes.push(farr[offset]);
-        offset += 1;
+      if (nodeSize > 0) {
+        ctx.beginPath();
+
+        ctx.moveTo(farr[offset], farr[offset+1]);
+        offset += 2;
+
+        for (var k = 2; k < nodeSize; k += 2) {
+          ctx.lineTo(farr[offset], farr[offset+1]);
+          offset += 2;
+        }
+
+        if (style.outline) {
+          ctx.lineWidth = style.lineWidth * 1.1;
+          ctx.strokeStyle = style.outline;
+          ctx.stroke();
+        }
+
+        ctx.lineWidth = style.lineWidth;
+        if (style.fill) {
+          ctx.fillStyle = style.color;
+          ctx.fill();
+        } else {
+          ctx.strokeStyle = style.color;
+          ctx.stroke();
+        }
       }
-
-      if (style.outline) {
-        ctx.lineWidth = style.lineWidth * 1.1;
-        ctx.strokeStyle = '#686523';
-
-        drawShape(ctx, nodes, false);
-      }
-
-      ctx.lineWidth = style.lineWidth;
-      if (style.fill) {
-        ctx.fillStyle = style.color;
-      } else {
-        ctx.strokeStyle = style.color;
-      }
-
-      drawShape(ctx, nodes, style.fill);
     }
   }
 }
@@ -143,6 +132,7 @@ function renderTileData(ctx, tileData) {
 
   // Rounded lines look cute :)
   ctx.lineCap = 'round';
+  ctx.lineJoin = 'bevel';
 
   for (var i = 0; i < tileData.length; i++) {
     var data = tileData[i];
