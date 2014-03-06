@@ -57,7 +57,7 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
   ctx.translate(-tileBB.minX, -tileBB.minY);
 
   var tileName = zoomLevel + '/' + x + '/' + y;
-  console.log('Render tile: ', tileName);
+  //console.log('Render tile: ', tileName);
 
   // Clip to the boundingBox of the tile on the canvas to prevent
   // drawing outside of the current tile.
@@ -71,7 +71,7 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
       return;
     }
 
-    renderTileData(ctx, tileData);
+    renderTileData(ctx, tileData, tileName);
     ctx.restore();
   });
 }
@@ -120,8 +120,8 @@ function renderData(ctx, data) {
   }
 }
 
-function renderTileData(ctx, tileData) {
-  console.time('render-start');
+function renderTileData(ctx, tileData, tileName) {
+  console.time('render ' + tileName);
 
   // Rounded lines look cute :)
   ctx.lineCap = 'round';
@@ -130,7 +130,7 @@ function renderTileData(ctx, tileData) {
     renderData(ctx, tileData[i]);
   }
 
-  console.timeEnd('render-start');
+  console.timeEnd('render ' + tileName);
 }
 
 function renderMapData(mapData) {
