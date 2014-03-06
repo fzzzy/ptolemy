@@ -277,7 +277,7 @@ function writeTileData() {
   var tiles = {};
 
   var minZoom = 13;
-  var maxZoom = 17;
+  var maxZoom = 18;
 
   console.log('writeTileData: ' + JSON.stringify(bounds));
 
