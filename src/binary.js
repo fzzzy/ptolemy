@@ -17,15 +17,15 @@ var BUILDING_TYPE = 8;
 var LANDUSE_TYPE = 9;
 
 var featureMap = {
-  waterA: WATERA_TYPE,
-  waterB: WATERB_TYPE,
-  highwayA: HIGHWAYA_TYPE,
-  highwayB: HIGHWAYB_TYPE,
-  highwayC: HIGHWAYC_TYPE,
-  highwayD: HIGHWAYD_TYPE,
-  natural: NATURAL_TYPE,
-  building: BUILDING_TYPE,
-  landuse: LANDUSE_TYPE
+  waterA: 1,
+  waterB: 2,
+  highwayA: 3,
+  highwayB: 4,
+  highwayC: 5,
+  highwayD: 6,
+  natural: 7,
+  building: 8,
+  landuse: 9
 };
 
 function getFeatureTypeFromID(id) {

@@ -58,10 +58,7 @@
 
       var ctx = tile.getContext('2d');
 
-      renderTile(
-        tilePoint.x, tilePoint.y, zoomLevel, ctx, this.mapData,
-        function() { }
-      );
+      renderTile(tilePoint.x, tilePoint.y, zoomLevel, ctx, this.mapData);
     }
   });
 
@@ -72,7 +69,9 @@
 
   // --- Init offline stored maps ---
 
-  initMapStore(onRenderMap);
+        clearMapStore(function() {
+          initMapStore(onRenderMap);
+        });
 </script>
 
 </body>
