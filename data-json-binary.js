@@ -31,6 +31,18 @@ var featureMap = {
   landuse: 9
 }
 
+var featuresInOrder = [
+  "landuse",
+  "natural",
+  "waterA",
+  "waterB",
+  "building",
+  "highwayD",
+  "highwayC",
+  "highwayB",
+  "highwayA"
+];
+
 function getBinaryFromFeature(feature, featureData) {
   var size = 0; // FeatureType + FeatureDataCount
 
@@ -59,9 +71,14 @@ function getBinaryFromFeature(feature, featureData) {
 function getBinaryFromTileData(tileData) {
   var features = Object.keys(tileData);
 
-  var featureBuffers = features.map(function(featureName) {
-    return getBinaryFromFeature(featureName, tileData[featureName]);
-  });
+  var featureBuffers = [];
+
+  for (var i = 0; i < featuresInOrder.length; i++) {
+    var featureName = featuresInOrder[i];
+    if (tileData[featureName]) {
+      featureBuffers.push(getBinaryFromFeature(featureName, tileData[featureName]));
+    }
+  }
 
   var bufHead = new Buffer(4);
   bufHead.writeUInt32LE(features.length, 0);

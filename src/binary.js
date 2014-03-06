@@ -62,40 +62,6 @@ function readXRef(iarr) {
   return tiles;
 }
 
-function readTileFeatures(binaryArray) {
-  var farr = new Float32Array(binaryArray);
-  var iarr = new Uint32Array(binaryArray);
-
-  var offset = 0;
-  var featureCount = iarr[offset];
-  offset += 1;
-
-  var features = {};
-
-  for (var i = 0; i < featureCount; i++) {
-    var featureID = iarr[offset];
-    var entryCount = iarr[offset + 1];
-    offset += 2;
-
-    var entries = [];
-    for (var n = 0; n < entryCount; n++) {
-      var nodeSize = iarr[offset];
-      offset += 1;
-
-      var nodes = [];
-      for (var k = 0; k < nodeSize; k++) {
-        nodes.push(farr[offset]);
-        offset += 1;
-      }
-      entries.push(nodes);
-    }
-
-    features[featureID] = entries;
-  }
-
-  return features;
-}
-
 function readTileFile(response) {
   var farr = new Float32Array(response);
   var iarr = new Uint32Array(response);

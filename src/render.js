@@ -15,15 +15,12 @@ var LINE_WIDTH_ROOT = 1.5;
 function drawShape(ctx, shape, fillShape) {
   ctx.beginPath();
 
-  for (var i = 0; i < shape.length; i += 2) {
+  ctx.moveTo(shape[0], shape[1]);
+
+  for (var i = 2; i < shape.length; i += 2) {
     var x = shape[i];
     var y = shape[i + 1];
-
-    if (i === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
+    ctx.lineTo(x, y);
   }
 
   if (fillShape) {
@@ -33,51 +30,43 @@ function drawShape(ctx, shape, fillShape) {
   }
 }
 
-var wayRenderingStyle = [
-  {
-    id: LANDUSE_TYPE, color: 'green', fill: true,
-  },
-  {
-    id: NATURAL_TYPE, fill: true, color: '#68B300'
-  },
-  {
+var wayRenderingStyle = {
+  WATERA_TYPE: {
     // Riverbanks
-    id: WATERA_TYPE, color: '#00899E', fill: true
+    color: '#00899E', fill: true
   },
-  {
+  2: {
     // Rivers
-    id: WATERB_TYPE, color: '#00899E', lineWidth: LINE_WIDTH_ROOT * 5
+    color: '#00899E', lineWidth: LINE_WIDTH_ROOT * 5
   },
-  {
-    id: BUILDING_TYPE, color: 'burlywood', fill: true
+  3: {
+    color: '#FFA200',
+    lineWidth: LINE_WIDTH_ROOT * 10,
+    outline: true
   },
-  {
-    id: HIGHWAYD_TYPE, color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
-  },
-  {
-    id: HIGHWAYC_TYPE, color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
-  },
-  {
-    id: HIGHWAYB_TYPE,
+  4: {
     color: '#F7EF0D',
     lineWidth: LINE_WIDTH_ROOT * 10,
     outline: true
   },
-  {
-    id: HIGHWAYA_TYPE,
-    color: '#FFA200',
-    lineWidth: LINE_WIDTH_ROOT * 10,
-    outline: true
-  }
-];
-
-var features = wayRenderingStyle.map(function(style) {
-  return style.id;
-});
+  5: {
+    color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
+  },
+  6: {
+    color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
+  },
+  7: {
+    fill: true, color: '#68B300'
+  },
+  8: {
+    color: 'burlywood', fill: true
+  },
+  9: {
+    color: 'green', fill: true,
+  },
+};
 
 function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
-  console.time('overall-render-start');
-
   ctx.save();
 
   // Figure out the boundary box of the tile to render.
@@ -106,9 +95,52 @@ function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
     ctx.restore();
 
     callback(null);
-
-    console.timeEnd('overall-render-start');
   });
+}
+
+function renderData(ctx, data) {
+  var farr = new Float32Array(data);
+  var iarr = new Uint32Array(data);
+
+  var offset = 0;
+  var featureCount = iarr[offset];
+  offset += 1;
+
+  for (var i = 0; i < featureCount; i++) {
+    var featureID = iarr[offset];
+
+    var style = wayRenderingStyle[featureID];
+
+    var entryCount = iarr[offset + 1];
+    offset += 2;
+
+    for (var n = 0; n < entryCount; n++) {
+      var nodeSize = iarr[offset];
+      offset += 1;
+
+      var nodes = [];
+      for (var k = 0; k < nodeSize; k++) {
+        nodes.push(farr[offset]);
+        offset += 1;
+      }
+
+      if (style.outline) {
+        ctx.lineWidth = style.lineWidth * 1.1;
+        ctx.strokeStyle = '#686523';
+
+        drawShape(ctx, nodes, false);
+      }
+
+      ctx.lineWidth = style.lineWidth;
+      if (style.fill) {
+        ctx.fillStyle = style.color;
+      } else {
+        ctx.strokeStyle = style.color;
+      }
+
+      drawShape(ctx, nodes, style.fill);
+    }
+  }
 }
 
 function renderTileData(ctx, tileData) {
@@ -117,31 +149,9 @@ function renderTileData(ctx, tileData) {
   // Rounded lines look cute :)
   ctx.lineCap = 'round';
 
-  // Draw all the way rendering stayles.
-  for (var i = 0; i < wayRenderingStyle.length; i++) {
-    var style = wayRenderingStyle[i];
-    var ways = tileData[style.id];
-
-    if (style.outline) {
-      for (var n = 0; n < ways.length; n++) {
-        ctx.lineWidth = style.lineWidth * 1.1;
-        ctx.strokeStyle = '#686523';
-
-        drawShape(ctx, ways[n], false);
-      }
-    }
-
-    ctx.lineWidth = style.lineWidth;
-    if (style.fill) {
-      ctx.fillStyle = style.color;
-    } else {
-      ctx.strokeStyle = style.color;
-    }
-
-    var fill = style.fill;
-    for (var j = 0; j < ways.length; j++) {
-      drawShape(ctx, ways[j], fill);
-    }
+  for (var i = 0; i < tileData.length; i++) {
+    var data = tileData[i];
+    renderData(ctx, data);
   }
 
   console.timeEnd('render-start');
