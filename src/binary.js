@@ -6,39 +6,6 @@
 
 // Reads a binary tileFile.
 
-var WATERA_TYPE = 1;
-var WATERB_TYPE = 2;
-var HIGHWAYA_TYPE = 3;
-var HIGHWAYB_TYPE = 4;
-var HIGHWAYC_TYPE = 5;
-var HIGHWAYD_TYPE = 6;
-var NATURAL_TYPE = 7;
-var BUILDING_TYPE = 8;
-var LANDUSE_TYPE = 9;
-
-var featureMap = {
-  waterA: WATERA_TYPE,
-  waterB: WATERB_TYPE,
-  highwayA: HIGHWAYA_TYPE,
-  highwayB: HIGHWAYB_TYPE,
-  highwayC: HIGHWAYC_TYPE,
-  highwayD: HIGHWAYD_TYPE,
-  natural: NATURAL_TYPE,
-  building: BUILDING_TYPE,
-  landuse: LANDUSE_TYPE
-};
-
-function getFeatureTypeFromID(id) {
-  var features = Object.keys(featureMap);
-  for (var i = 0; i < features.length; i++) {
-    if (featureMap[features[i]] === id) {
-      return features[i];
-    }
-  }
-  // Should always find the feature from the ID.
-  throw new Error('Should not get here');
-}
-
 function readXRef(iarr) {
   var offset = iarr[1] / 4;
 
@@ -62,41 +29,7 @@ function readXRef(iarr) {
   return tiles;
 }
 
-function readTileFeatures(binaryArray) {
-  var farr = new Float32Array(binaryArray);
-  var iarr = new Uint32Array(binaryArray);
-
-  var offset = 0;
-  var featureCount = iarr[offset];
-  offset += 1;
-
-  var features = {};
-
-  for (var i = 0; i < featureCount; i++) {
-    var featureID = iarr[offset];
-    var entryCount = iarr[offset + 1];
-    offset += 2;
-
-    var entries = [];
-    for (var n = 0; n < entryCount; n++) {
-      var nodeSize = iarr[offset];
-      offset += 1;
-
-      var nodes = [];
-      for (var k = 0; k < nodeSize; k++) {
-        nodes.push(farr[offset]);
-        offset += 1;
-      }
-      entries.push(nodes);
-    }
-
-    features[featureID] = entries;
-  }
-
-  return features;
-}
-
-function readTileFile(response, callback) {
+function readTileFile(response) {
   var farr = new Float32Array(response);
   var iarr = new Uint32Array(response);
 
@@ -110,11 +43,11 @@ function readTileFile(response, callback) {
     maxlon: farr[5]
   };
 
-  callback(null, {
+  return {
     bounds: bounds,
     tileInfos: tileInfos,
     response: response
-  });
+  };
 }
 
 function getBinaryTileFile(fileName, callback) {
@@ -123,7 +56,8 @@ function getBinaryTileFile(fileName, callback) {
   xhr.responseType = 'arraybuffer';
 
   xhr.onload = function(e) {
-    readTileFile(this.response, callback);
+    var mapData = readTileFile(this.response);
+    callback(null, mapData);
   };
 
   xhr.onerror = function(e) {

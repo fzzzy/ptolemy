@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 /* globals IDBStore, getMeterFromLonLat, getTileFromMeter, readTileFeatures,
-    features, getBinaryTileFile, tiles:true */
+    getBinaryTileFile, tiles:true */
 
 'use strict';
 
@@ -75,32 +75,26 @@ MapData.prototype.getTileBounds = function(zoomLevel) {
 };
 
 MapData.prototype.getTile = function(name, callback) {
-  if (this.tileCache[name]) {
+  if (this.tileCache[name] !== undefined) {
     callback(null, this.tileCache[name]);
     return;
   }
 
-  var self = this;
   this.tileStore.get(name, function(entry) {
-    var tileFeatures;
+    var data = null;
 
     if (entry) {
-      tileFeatures = readTileFeatures(entry.data);
-    } else {
-      tileFeatures = null;
+      data = entry.data;
     }
 
-    self.tileCache[name] = tileFeatures;
+    this.tileCache[name] = data;
 
-    callback(null, tileFeatures);
-  }, callback);
+    callback(null, data);
+  }.bind(this), callback);
 };
 
 MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
-  var tileData = {};
-  features.forEach(function(feature) {
-    tileData[feature] = [];
-  });
+  var tileData = [];
 
   var self = this;
   function processNextZoomLevel() {
@@ -120,10 +114,7 @@ MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
         // Make the processing stop if there is no
         zoomLevel = -1;
       } else {
-        features.forEach(function(feature) {
-          var arr = tileData[feature];
-          arr.push.apply(arr, data[feature]);
-        });
+        tileData.unshift(data);
 
         zoomLevel -= 1;
         x = Math.floor(x / 2);
@@ -176,15 +167,12 @@ MapData.load = function(url, mapName, callback) {
           var tileData = mapData.response.slice(offsetStart, offsetEnd);
 
           newTiles.push({
-            type: 'put',
-            value: {
-              id: tile.name,
-              data: tileData
-            }
+            id: tile.name,
+            data: tileData
           });
         }
 
-        tiles.batch(newTiles, function() {
+        tiles.putBatch(newTiles, function() {
           callback();
         }, function(error) {
           callback(error);
