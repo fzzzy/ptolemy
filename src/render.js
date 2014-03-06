@@ -57,6 +57,7 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
   ctx.translate(-tileBB.minX, -tileBB.minY);
 
   var tileName = zoomLevel + '/' + x + '/' + y;
+  console.log('Render tile: ', tileName);
 
   // Clip to the boundingBox of the tile on the canvas to prevent
   // drawing outside of the current tile.
@@ -69,8 +70,6 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
       ctx.restore();
       return;
     }
-
-    console.log("Render tile: " + x + ", " + y + ", " + zoomLevel);
 
     renderTileData(ctx, tileData);
     ctx.restore();
