@@ -6,39 +6,6 @@
 
 // Reads a binary tileFile.
 
-var WATERA_TYPE = 1;
-var WATERB_TYPE = 2;
-var HIGHWAYA_TYPE = 3;
-var HIGHWAYB_TYPE = 4;
-var HIGHWAYC_TYPE = 5;
-var HIGHWAYD_TYPE = 6;
-var NATURAL_TYPE = 7;
-var BUILDING_TYPE = 8;
-var LANDUSE_TYPE = 9;
-
-var featureMap = {
-  waterA: 1,
-  waterB: 2,
-  highwayA: 3,
-  highwayB: 4,
-  highwayC: 5,
-  highwayD: 6,
-  natural: 7,
-  building: 8,
-  landuse: 9
-};
-
-function getFeatureTypeFromID(id) {
-  var features = Object.keys(featureMap);
-  for (var i = 0; i < features.length; i++) {
-    if (featureMap[features[i]] === id) {
-      return features[i];
-    }
-  }
-  // Should always find the feature from the ID.
-  throw new Error('Should not get here');
-}
-
 function readXRef(iarr) {
   var offset = iarr[1] / 4;
 
