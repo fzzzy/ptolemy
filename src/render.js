@@ -31,7 +31,7 @@ function drawShape(ctx, shape, fillShape) {
 }
 
 var wayRenderingStyle = {
-  WATERA_TYPE: {
+  1: {
     // Riverbanks
     color: '#00899E', fill: true
   },
@@ -66,7 +66,7 @@ var wayRenderingStyle = {
   },
 };
 
-function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
+function renderTile(x, y, zoomLevel, ctx, mapData) {
   ctx.save();
 
   // Figure out the boundary box of the tile to render.
@@ -87,14 +87,11 @@ function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
   mapData.collectTileData(x, y, zoomLevel, function(error, tileData) {
     if (error) {
       ctx.restore();
-      callback(error);
       return;
     }
 
     renderTileData(ctx, tileData);
     ctx.restore();
-
-    callback(null);
   });
 }
 
