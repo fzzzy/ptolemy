@@ -116,6 +116,8 @@ MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
         return;
       }
 
+      console.log(data);
+
       if (!data) {
         // Make the processing stop if there is no
         zoomLevel = -1;
@@ -175,16 +177,15 @@ MapData.load = function(url, mapName, callback) {
 
           var tileData = mapData.response.slice(offsetStart, offsetEnd);
 
+          console.log(tileData);
+
           newTiles.push({
-            type: 'put',
-            value: {
-              id: tile.name,
-              data: tileData
-            }
+            id: tile.name,
+            data: tileData
           });
         }
 
-        tiles.batch(newTiles, function() {
+        tiles.putBatch(newTiles, function() {
           callback();
         }, function(error) {
           callback(error);

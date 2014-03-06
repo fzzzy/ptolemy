@@ -35,36 +35,36 @@ function drawShape(ctx, shape, fillShape) {
 
 var wayRenderingStyle = [
   {
-    name: LANDUSE_TYPE, color: 'green', fill: true,
+    id: LANDUSE_TYPE, color: 'green', fill: true,
   },
   {
-    name: NATURAL_TYPE, fill: true, color: '#68B300'
+    id: NATURAL_TYPE, fill: true, color: '#68B300'
   },
   {
     // Riverbanks
-    name: WATERA_TYPE, color: '#00899E', fill: true
+    id: WATERA_TYPE, color: '#00899E', fill: true
   },
   {
     // Rivers
-    name: WATERB_TYPE, color: '#00899E', lineWidth: LINE_WIDTH_ROOT * 5
+    id: WATERB_TYPE, color: '#00899E', lineWidth: LINE_WIDTH_ROOT * 5
   },
   {
-    name: BUILDING_TYPE, color: 'burlywood', fill: true
+    id: BUILDING_TYPE, color: 'burlywood', fill: true
   },
   {
-    name: HIGHWAYD_TYPE, color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
+    id: HIGHWAYD_TYPE, color: 'white', lineWidth: LINE_WIDTH_ROOT * 3
   },
   {
-    name: HIGHWAYC_TYPE, color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
+    id: HIGHWAYC_TYPE, color: 'white', lineWidth: LINE_WIDTH_ROOT * 7
   },
   {
-    name: HIGHWAYB_TYPE,
+    id: HIGHWAYB_TYPE,
     color: '#F7EF0D',
     lineWidth: LINE_WIDTH_ROOT * 10,
     outline: true
   },
   {
-    name: HIGHWAYA_TYPE,
+    id: HIGHWAYA_TYPE,
     color: '#FFA200',
     lineWidth: LINE_WIDTH_ROOT * 10,
     outline: true
@@ -72,10 +72,12 @@ var wayRenderingStyle = [
 ];
 
 var features = wayRenderingStyle.map(function(style) {
-  return style.name;
+  return style.id;
 });
 
 function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
+  console.time('overall-render-start');
+
   ctx.save();
 
   // Figure out the boundary box of the tile to render.
@@ -86,8 +88,6 @@ function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
   ctx.translate(-tileBB.minX, -tileBB.minY);
 
   var tileName = zoomLevel + '/' + x + '/' + y;
-  console.log('Render tile:', tileName);
-  // console.log(tileBB);
 
   // Clip to the boundingBox of the tile on the canvas to prevent
   // drawing outside of the current tile.
@@ -106,6 +106,8 @@ function renderTile(x, y, zoomLevel, ctx, mapData, callback) {
     ctx.restore();
 
     callback(null);
+
+    console.timeEnd('overall-render-start');
   });
 }
 
@@ -118,9 +120,7 @@ function renderTileData(ctx, tileData) {
   // Draw all the way rendering stayles.
   for (var i = 0; i < wayRenderingStyle.length; i++) {
     var style = wayRenderingStyle[i];
-    var ways = tileData[style.name];
-
-    assert(ways);
+    var ways = tileData[style.id];
 
     if (style.outline) {
       for (var n = 0; n < ways.length; n++) {
@@ -151,69 +151,7 @@ function renderMapData(mapData) {
   var b = mapData.bounds;
   var latLon = [(b.minlat + b.maxlat)/2, (b.minlon + b.maxlon)/2];
 
-  console.log(latLon);
-
   map.setView(latLon, MAP_DEFAULT_ZOOM);
   mapLayer.mapData = mapData;
   mapLayer.redraw();
-}
-
-function renderMapDataOnCanvas() {
-  var canvas = document.getElementById('canvas');
-  var ctx = canvas.getContext('2d');
-
-  // --- Translate the canvas context to make drawing go at the right spot ---
-  var tileBounds = mapData.getTileBounds(MAP_DEFAULT_ZOOM);
-
-  var tileMin = tileBounds.min;
-  var tileMax = tileBounds.max;
-
-  var tileXCount = tileMax[0] - tileMin[0] + 1;
-  var tileYCount = tileMax[1] - tileMin[1] + 1;
-
-  // --- Add margin around the map and color background ---
-  var mapMargin = 10;
-
-  var canvasWidth = tileXCount * TILE_SIZE;
-  var canvasHeight = tileYCount * TILE_SIZE;
-
-  canvas.width = canvasWidth + 2 * mapMargin;
-  canvas.height = canvasHeight + 2 * mapMargin;
-
-  ctx.translate(mapMargin, mapMargin);
-
-  // Draw the background of the map.
-  ctx.fillStyle = 'rgb(237, 230, 220)';
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-  // --- Draw the individual tiles of the map ---
-
-  var x = 0;
-  var y = 0;
-  function renderNextTile() {
-    if (x == tileXCount) {
-      return;
-    }
-
-    ctx.save();
-    ctx.translate(x * TILE_SIZE, y * TILE_SIZE);
-
-    renderTile(
-      x + tileMin[0], y + tileMin[1], MAP_DEFAULT_ZOOM, ctx, mapData,
-      function callback() {
-        ctx.restore();
-
-        y ++;
-        if (y == tileYCount) {
-          x ++;
-          y = 0;
-        }
-
-        // setTimeout(renderNextTile, 0);
-        renderNextTile();
-      }
-    );
-  }
-
-  renderNextTile();
 }

@@ -96,7 +96,7 @@ function readTileFeatures(binaryArray) {
   return features;
 }
 
-function readTileFile(response, callback) {
+function readTileFile(response) {
   var farr = new Float32Array(response);
   var iarr = new Uint32Array(response);
 
@@ -110,11 +110,11 @@ function readTileFile(response, callback) {
     maxlon: farr[5]
   };
 
-  callback(null, {
+  return {
     bounds: bounds,
     tileInfos: tileInfos,
     response: response
-  });
+  };
 }
 
 function getBinaryTileFile(fileName, callback) {
@@ -123,7 +123,8 @@ function getBinaryTileFile(fileName, callback) {
   xhr.responseType = 'arraybuffer';
 
   xhr.onload = function(e) {
-    readTileFile(this.response, callback);
+    var mapData = readTileFile(this.response);
+    callback(null, mapData);
   };
 
   xhr.onerror = function(e) {
