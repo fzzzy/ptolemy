@@ -99,7 +99,7 @@ MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
   var self = this;
   function processNextZoomLevel() {
     if (zoomLevel === -1) {
-      callback(null, tileData.reverse());
+      callback(null, tileData);
       return;
     }
 
@@ -114,7 +114,7 @@ MapData.prototype.collectTileData = function(x, y, zoomLevel, callback) {
         // Make the processing stop if there is no
         zoomLevel = -1;
       } else {
-        tileData.push(data);
+        tileData.unshift(data);
 
         zoomLevel -= 1;
         x = Math.floor(x / 2);
