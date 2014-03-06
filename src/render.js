@@ -125,11 +125,9 @@ function renderTileData(ctx, tileData) {
 
   // Rounded lines look cute :)
   ctx.lineCap = 'round';
-  ctx.lineJoin = 'bevel';
 
   for (var i = 0; i < tileData.length; i++) {
-    var data = tileData[i];
-    renderData(ctx, data);
+    renderData(ctx, tileData[i]);
   }
 
   console.timeEnd('render-start');
