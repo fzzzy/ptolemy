@@ -63,7 +63,7 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
 
   // Clip to the boundingBox of the tile on the canvas to prevent
   // drawing outside of the current tile.
-  ctx.strokeStyle = "black";
+  ctx.strokeStyle = 'black';
   ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
   ctx.clip();
   ctx.moveTo(
