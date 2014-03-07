@@ -47,7 +47,7 @@ var wayRenderingStyle = {
 };
 
 function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
-  var offScreenCanvas = document.createElement("canvas");
+  var offScreenCanvas = document.createElement('canvas');
   offScreenCanvas.width = canvas.width;
   offScreenCanvas.height = canvas.height;
 
@@ -90,7 +90,7 @@ function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
     renderTileData(ctx, tileData, tileName);
     ctx.restore();
 
-    var onScreenContext = canvas.getContext("2d");
+    var onScreenContext = canvas.getContext('2d');
     onScreenContext.drawImage(offScreenCanvas, 0, 0);
 
     callback(offScreenCanvas);
