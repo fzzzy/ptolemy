@@ -113,13 +113,13 @@ function renderData(ctx, data) {
     var entryCount = iarr[offset + 1];
     offset += 2;
 
+    ctx.beginPath();
+
     for (var n = 0; n < entryCount; n++) {
       var nodeSize = iarr[offset];
       offset += 1;
 
       if (nodeSize > 0) {
-        ctx.beginPath();
-
         ctx.moveTo(farr[offset], farr[offset+1]);
         offset += 2;
 
@@ -127,16 +127,16 @@ function renderData(ctx, data) {
           ctx.lineTo(farr[offset], farr[offset+1]);
           offset += 2;
         }
-
-        ctx.lineWidth = style.lineWidth;
-        if (style.fill) {
-          ctx.fillStyle = style.color;
-          ctx.fill();
-        } else {
-          ctx.strokeStyle = style.color;
-          ctx.stroke();
-        }
       }
+    }
+
+    ctx.lineWidth = style.lineWidth;
+    if (style.fill) {
+      ctx.fillStyle = style.color;
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = style.color;
+      ctx.stroke();
     }
   }
 }
