@@ -90,19 +90,6 @@ function renderData(ctx, data) {
   }
 }
 
-function renderTileData(ctx, tileData, tileName) {
-  console.time('render ' + tileName);
-
-  // Rounded lines look cute :)
-  ctx.lineCap = 'round';
-
-  for (var i = 0; i < tileData.length; i++) {
-    renderData(ctx, tileData[i]);
-  }
-
-  console.timeEnd('render ' + tileName);
-}
-
 function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
   var offScreenCanvas = document.createElement("canvas");
   offScreenCanvas.width = canvas.width;
@@ -152,6 +139,19 @@ function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
 
     callback(offScreenCanvas);
   });
+}
+
+function renderTileData(ctx, tileData, tileName) {
+  console.time('render ' + tileName);
+
+  // Rounded lines look cute :)
+  ctx.lineCap = 'round';
+
+  for (var i = 0; i < tileData.length; i++) {
+    renderData(ctx, tileData[i]);
+  }
+
+  console.timeEnd('render ' + tileName);
 }
 
 function renderMapData(mapData) {
