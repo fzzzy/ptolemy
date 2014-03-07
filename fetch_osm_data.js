@@ -7,7 +7,7 @@ var options = {
 };
 
 module.exports = function (s, w, n, e) {
-  options.form.data = "( way(" + s + "," + w + "," + n + "," + e + "); ); (._;>;); out;";
+  options.form.data = "( way(" + s + "," + w + "," + n + "," + e + "); ); (._;>;); out meta;";
   return request.post(options);
 };
 
