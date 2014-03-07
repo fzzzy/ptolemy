@@ -49,6 +49,9 @@ var wayRenderingStyle = {
 function renderTile(x, y, zoomLevel, ctx, mapData) {
   ctx.save();
 
+  var tileName = zoomLevel + '/' + x + '/' + y;
+  ctx.fillText(tileName, 20, 20);
+
   // Figure out the boundary box of the tile to render.
   var tileBB = getTileBoundingBoxInMeter(x, y, zoomLevel);
   var pixelPerMeter = getPixelPerMeter(zoomLevel);
@@ -56,13 +59,20 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
   ctx.scale(pixelPerMeter, pixelPerMeter);
   ctx.translate(-tileBB.minX, -tileBB.minY);
 
-  var tileName = zoomLevel + '/' + x + '/' + y;
   //console.log('Render tile: ', tileName);
 
   // Clip to the boundingBox of the tile on the canvas to prevent
   // drawing outside of the current tile.
+  ctx.strokeStyle = "black";
   ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
   ctx.clip();
+  ctx.moveTo(
+    tileBB.minX,
+    tileBB.minY);
+  ctx.lineTo(
+    tileBB.minX + tileBB.width,
+    tileBB.minY + tileBB.height);
+  ctx.stroke();
 
   // Lookup the wayMapping from the mapData.
   mapData.collectTileData(x, y, zoomLevel, function(error, tileData) {
@@ -74,6 +84,7 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
     renderTileData(ctx, tileData, tileName);
     ctx.restore();
   });
+
 }
 
 function renderData(ctx, data) {
