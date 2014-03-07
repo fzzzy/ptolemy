@@ -46,50 +46,6 @@ var wayRenderingStyle = {
   },
 };
 
-function renderData(ctx, data) {
-  var farr = new Float32Array(data);
-  var iarr = new Uint32Array(data);
-
-  var offset = 0;
-  var featureCount = iarr[offset];
-  offset += 1;
-
-  for (var i = 0; i < featureCount; i++) {
-    var featureID = iarr[offset];
-
-    var style = wayRenderingStyle[featureID];
-
-    var entryCount = iarr[offset + 1];
-    offset += 2;
-
-    for (var n = 0; n < entryCount; n++) {
-      var nodeSize = iarr[offset];
-      offset += 1;
-
-      if (nodeSize > 0) {
-        ctx.beginPath();
-
-        ctx.moveTo(farr[offset], farr[offset+1]);
-        offset += 2;
-
-        for (var k = 2; k < nodeSize; k += 2) {
-          ctx.lineTo(farr[offset], farr[offset+1]);
-          offset += 2;
-        }
-
-        ctx.lineWidth = style.lineWidth;
-        if (style.fill) {
-          ctx.fillStyle = style.color;
-          ctx.fill();
-        } else {
-          ctx.strokeStyle = style.color;
-          ctx.stroke();
-        }
-      }
-    }
-  }
-}
-
 function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
   var offScreenCanvas = document.createElement("canvas");
   offScreenCanvas.width = canvas.width;
@@ -139,6 +95,50 @@ function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
 
     callback(offScreenCanvas);
   });
+}
+
+function renderData(ctx, data) {
+  var farr = new Float32Array(data);
+  var iarr = new Uint32Array(data);
+
+  var offset = 0;
+  var featureCount = iarr[offset];
+  offset += 1;
+
+  for (var i = 0; i < featureCount; i++) {
+    var featureID = iarr[offset];
+
+    var style = wayRenderingStyle[featureID];
+
+    var entryCount = iarr[offset + 1];
+    offset += 2;
+
+    for (var n = 0; n < entryCount; n++) {
+      var nodeSize = iarr[offset];
+      offset += 1;
+
+      if (nodeSize > 0) {
+        ctx.beginPath();
+
+        ctx.moveTo(farr[offset], farr[offset+1]);
+        offset += 2;
+
+        for (var k = 2; k < nodeSize; k += 2) {
+          ctx.lineTo(farr[offset], farr[offset+1]);
+          offset += 2;
+        }
+
+        ctx.lineWidth = style.lineWidth;
+        if (style.fill) {
+          ctx.fillStyle = style.color;
+          ctx.fill();
+        } else {
+          ctx.strokeStyle = style.color;
+          ctx.stroke();
+        }
+      }
+    }
+  }
 }
 
 function renderTileData(ctx, tileData, tileName) {
