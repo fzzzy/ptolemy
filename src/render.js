@@ -7,6 +7,8 @@
 
 // --- Actual rendering ---
 
+var DRAW_DEBUG_INFO = true;
+
 // Adjust this based on current zoom level.
 var LINE_WIDTH_ROOT = 1.5;
 
@@ -70,29 +72,36 @@ function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
     ctx.save();
 
     var tileName = zoomLevel + '/' + x + '/' + y;
-    ctx.fillText(tileName, 20, 20);
 
     // Figure out the boundary box of the tile to render.
     var tileBB = getTileBoundingBoxInMeter(x, y, zoomLevel);
     var pixelPerMeter = getPixelPerMeter(zoomLevel);
+
+    if (DRAW_DEBUG_INFO) {
+      ctx.fillText(tileName, 20, 20);
+    }
 
     ctx.scale(pixelPerMeter, pixelPerMeter);
     ctx.translate(-tileBB.minX, -tileBB.minY);
 
     //console.log('Render tile: ', tileName);
 
+    if (DRAW_DEBUG_INFO) {
+      ctx.strokeStyle = 'black';
+      ctx.beginPath();
+      ctx.moveTo(
+        tileBB.minX,
+        tileBB.minY);
+      ctx.lineTo(
+        tileBB.minX + tileBB.width,
+        tileBB.minY + tileBB.height);
+      ctx.stroke();
+    }
+
     // Clip to the boundingBox of the tile on the canvas to prevent
     // drawing outside of the current tile.
-    ctx.strokeStyle = 'black';
     ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
     ctx.clip();
-    ctx.moveTo(
-      tileBB.minX,
-      tileBB.minY);
-    ctx.lineTo(
-      tileBB.minX + tileBB.width,
-      tileBB.minY + tileBB.height);
-    ctx.stroke();
 
     renderTileData(ctx, tileData, tileName);
 
@@ -102,6 +111,7 @@ function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
     onScreenContext.drawImage(offScreenCanvas, 0, 0);
 
     callback(offScreenCanvas);
+    offScreenCanvas = null;
   });
 }
 
