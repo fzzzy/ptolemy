@@ -10,8 +10,6 @@
 // Adjust this based on current zoom level.
 var LINE_WIDTH_ROOT = 1.5;
 
-var canvases = {};
-
 var wayRenderingStyle = {
   1: {
     // Riverbanks
