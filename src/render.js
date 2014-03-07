@@ -10,6 +10,8 @@
 // Adjust this based on current zoom level.
 var LINE_WIDTH_ROOT = 1.5;
 
+var canvases = {};
+
 var wayRenderingStyle = {
   1: {
     // Riverbanks
@@ -45,47 +47,6 @@ var wayRenderingStyle = {
     color: 'lightgray', fill: true,
   },
 };
-
-function renderTile(x, y, zoomLevel, ctx, mapData) {
-  ctx.save();
-
-  var tileName = zoomLevel + '/' + x + '/' + y;
-  ctx.fillText(tileName, 20, 20);
-
-  // Figure out the boundary box of the tile to render.
-  var tileBB = getTileBoundingBoxInMeter(x, y, zoomLevel);
-  var pixelPerMeter = getPixelPerMeter(zoomLevel);
-
-  ctx.scale(pixelPerMeter, pixelPerMeter);
-  ctx.translate(-tileBB.minX, -tileBB.minY);
-
-  //console.log('Render tile: ', tileName);
-
-  // Clip to the boundingBox of the tile on the canvas to prevent
-  // drawing outside of the current tile.
-  ctx.strokeStyle = 'black';
-  ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
-  ctx.clip();
-  ctx.moveTo(
-    tileBB.minX,
-    tileBB.minY);
-  ctx.lineTo(
-    tileBB.minX + tileBB.width,
-    tileBB.minY + tileBB.height);
-  ctx.stroke();
-
-  // Lookup the wayMapping from the mapData.
-  mapData.collectTileData(x, y, zoomLevel, function(error, tileData) {
-    if (error) {
-      ctx.restore();
-      return;
-    }
-
-    renderTileData(ctx, tileData, tileName);
-    ctx.restore();
-  });
-
-}
 
 function renderData(ctx, data) {
   var farr = new Float32Array(data);
@@ -142,6 +103,57 @@ function renderTileData(ctx, tileData, tileName) {
   }
 
   console.timeEnd('render ' + tileName);
+}
+
+function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
+  var offScreenCanvas = document.createElement("canvas");
+  offScreenCanvas.width = canvas.width;
+  offScreenCanvas.height = canvas.height;
+
+  var ctx = offScreenCanvas.getContext('2d');
+
+  ctx.save();
+
+  var tileName = zoomLevel + '/' + x + '/' + y;
+  ctx.fillText(tileName, 20, 20);
+
+  // Figure out the boundary box of the tile to render.
+  var tileBB = getTileBoundingBoxInMeter(x, y, zoomLevel);
+  var pixelPerMeter = getPixelPerMeter(zoomLevel);
+
+  ctx.scale(pixelPerMeter, pixelPerMeter);
+  ctx.translate(-tileBB.minX, -tileBB.minY);
+
+  //console.log('Render tile: ', tileName);
+
+  // Clip to the boundingBox of the tile on the canvas to prevent
+  // drawing outside of the current tile.
+  ctx.strokeStyle = 'black';
+  ctx.rect(tileBB.minX, tileBB.minY, tileBB.width, tileBB.height);
+  ctx.clip();
+  ctx.moveTo(
+    tileBB.minX,
+    tileBB.minY);
+  ctx.lineTo(
+    tileBB.minX + tileBB.width,
+    tileBB.minY + tileBB.height);
+  ctx.stroke();
+
+  // Lookup the wayMapping from the mapData.
+  mapData.collectTileData(x, y, zoomLevel, function(error, tileData) {
+    if (error) {
+      ctx.restore();
+      return;
+    }
+
+    renderTileData(ctx, tileData, tileName);
+    ctx.restore();
+
+    var onScreenContext = canvas.getContext("2d");
+    onScreenContext.drawImage(offScreenCanvas, 0, 0);
+
+    callback(offScreenCanvas);
+  });
 }
 
 function renderMapData(mapData) {
