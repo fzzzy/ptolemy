@@ -46,7 +46,13 @@ var wayRenderingStyle = {
   },
 };
 
-function renderTile(x, y, zoomLevel, ctx, mapData) {
+function renderTile(canvas, x, y, zoomLevel, mapData, callback) {
+  var offScreenCanvas = document.createElement('canvas');
+  offScreenCanvas.width = canvas.width;
+  offScreenCanvas.height = canvas.height;
+
+  var ctx = offScreenCanvas.getContext('2d');
+
   ctx.save();
 
   var tileName = zoomLevel + '/' + x + '/' + y;
@@ -83,8 +89,12 @@ function renderTile(x, y, zoomLevel, ctx, mapData) {
 
     renderTileData(ctx, tileData, tileName);
     ctx.restore();
-  });
 
+    var onScreenContext = canvas.getContext('2d');
+    onScreenContext.drawImage(offScreenCanvas, 0, 0);
+
+    callback(offScreenCanvas);
+  });
 }
 
 function renderData(ctx, data) {

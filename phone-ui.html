@@ -50,21 +50,22 @@
 
   // A Leaflet Layer that works hand in hand with the map rendered provided
   // by ptolemy.
-  var PtolemyCanvasLayer = L.TileLayer.Canvas.extend({
-    drawTile: function (tile, tilePoint, zoomLevel) {
-      if (!this.mapData) {
-        return;
-      }
-
-      var ctx = tile.getContext('2d');
-
-      renderTile(tilePoint.x, tilePoint.y, zoomLevel, ctx, this.mapData);
-    }
-  });
-
-  mapLayer = new PtolemyCanvasLayer({
+  var mapLayer = L.tileLayer.canvas({
+    async: true,
     attribution: "© <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
   });
+
+  mapLayer.drawTile = function(canvas, tilePoint, zoomLevel) {
+    if (!this.mapData) {
+      return;
+    }
+
+    renderTile(canvas, tilePoint.x, tilePoint.y, zoomLevel, this.mapData,
+      function() {
+        mapLayer.tileDrawn(canvas);
+      });
+  }
+
   mapLayer.addTo(map);
 
   // --- Init offline stored maps ---
